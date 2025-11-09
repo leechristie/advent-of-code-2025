@@ -44,9 +44,9 @@ def solve(day: int | None=None, example: bool=False) -> int:
 
             # pass the input file and get the first two yielded results
             active_solver = solver((line.strip('\n') for line in file))
-            print(f'Part 1: ', flush=True)
+            print(f'Part 1: ', end='', flush=True)
             print(f'{next(active_solver)}', flush=True)
-            print(f'Part 2: ', flush=True)
+            print(f'Part 2: ', end='', flush=True)
             print(f'{next(active_solver)}', flush=True)
 
             # solver should not yield a third result
