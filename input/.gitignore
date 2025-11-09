@@ -1,0 +1,3 @@
+*.txt
+!input00.txt
+!example00.txt
