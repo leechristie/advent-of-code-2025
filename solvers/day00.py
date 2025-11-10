@@ -1,5 +1,6 @@
 import time
 from typing import Iterator
+from .debug import print
 
 __all__ = ['solve00']
 

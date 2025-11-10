@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from typing import Any, Callable, Iterator
 
 # list of solvers
@@ -8,7 +9,6 @@ type SolverType = Callable[[Iterator[str]], Iterator[Any]]
 __SOLVER_LIST: list[tuple[str, SolverType]] = [
     ('Placeholder', solve00)
 ]
-
 
 __all__ = ['solve']
 
@@ -19,6 +19,7 @@ def solve(day: int | None=None, example: bool=False) -> int:
     if day is None:
         day = len(__SOLVER_LIST) - 1
     if not 0 <= day <= len(__SOLVER_LIST) - 1:
+        time.sleep(0.1)
         print(f'no solver for day {day}', file=sys.stderr, end='\n', flush=True)
         return 1
     title: str
@@ -35,6 +36,7 @@ def solve(day: int | None=None, example: bool=False) -> int:
     # check that the required input file is available
     filename = f'input/{"example" if example else "input"}{day:02}.txt'
     if not os.path.exists(filename):
+        time.sleep(0.1)
         print(f'missing file {filename}', file=sys.stderr, end='\n', flush=True)
         return 1
 
@@ -44,15 +46,22 @@ def solve(day: int | None=None, example: bool=False) -> int:
 
             # pass the input file and get the first two yielded results
             active_solver = solver((line.strip('\n') for line in file))
-            print(f'Part 1: ', end='', flush=True)
-            print(f'{next(active_solver)}', flush=True)
-            print(f'Part 2: ', end='', flush=True)
-            print(f'{next(active_solver)}', flush=True)
+            try:
+                print(f'Part 1: {next(active_solver)}', flush=True)
+            except TypeError as err:
+                if 'is not an iterator' in str(err):
+                    print(flush=True)
+                    time.sleep(0.1)
+                    print(f'solver for day {day} did not yield any results', file=sys.stderr, end='\n', flush=True)
+                    return 1
+                raise
+            print(f'Part 2: {next(active_solver)}', flush=True)
 
             # solver should not yield a third result
             try:
                 next(active_solver)
                 print(flush=True)
+                time.sleep(0.1)
                 print(f'solver for day {day} yielded too many results', file=sys.stderr, end='\n', flush=True)
                 return 1
             except StopIteration:
@@ -60,6 +69,7 @@ def solve(day: int | None=None, example: bool=False) -> int:
 
     except StopIteration:
         print(flush=True)
+        time.sleep(0.1)
         print(f'solver for day {day} yielded too few results', file=sys.stderr, end='\n', flush=True)
         return 1
 
