@@ -1,6 +1,7 @@
 import time
 from typing import Iterator
 import random
+
 from .debug import print
 
 __all__ = ['solve01']

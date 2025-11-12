@@ -1,2 +1,3 @@
 clear
-mypy *.py */*.py
+echo running mypy . . .
+mypy .

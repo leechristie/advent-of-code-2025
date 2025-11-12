@@ -1,4 +1,5 @@
 import sys
+from io import TextIOWrapper
 
 from .days import *
 
@@ -9,7 +10,7 @@ __all__ = ['SolverError', 'solve', 'profile']
 
 class SolverError(Exception):
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
 
 
@@ -24,7 +25,7 @@ def get_solver_for(day: int | None=None) -> tuple[int, str, SolverType]:
     return day, title, solver
 
 
-def print_header(day: int, title: str, example: bool=False):
+def print_header(day: int, title: str, example: bool=False) -> None:
     print('Advent of Code 2025')
     print(f'Day {day} - {title}')
     if example:
@@ -33,7 +34,7 @@ def print_header(day: int, title: str, example: bool=False):
         time.sleep(0.01)
 
 
-def load_input_file(day: int | None=None, example: bool=False):
+def load_input_file(day: int | None=None, example: bool=False) -> TextIOWrapper:
     filename = f'input/{"example" if example else "input"}{day:02}.txt'
     try:
         return open(filename)
@@ -41,24 +42,19 @@ def load_input_file(day: int | None=None, example: bool=False):
         raise SolverError(f'missing input file {filename}')
 
 
-# loads the required input file, and invokes the required solver
 def solve(day: int | None=None, example: bool=False) -> None:
     day, title, solver = get_solver_for(day)
     print_header(day, title, example)
     try:
         with load_input_file(day, example) as file:
 
-            # pass the input file and get the first two yielded results
             active_solver = solver((line.strip('\n') for line in file))
-            try:
-                print(f'Part 1: {next(active_solver)}', flush=True)
-            except TypeError as err:
-                if 'is not an iterator' in str(err):
-                    raise SolverError(f'solver for day {day} did not yield any results')
-                raise
+            if not hasattr(active_solver, '__next__'):
+                raise SolverError(f'solver for day {day} did not yield any results')
+
+            print(f'Part 1: {next(active_solver)}', flush=True)
             print(f'Part 2: {next(active_solver)}', flush=True)
 
-            # solver should not yield a third result
             try:
                 next(active_solver)
                 raise SolverError(f'solver for day {day} yielded too many results')
@@ -69,35 +65,38 @@ def solve(day: int | None=None, example: bool=False) -> None:
         raise SolverError(f'solver for day {day} yielded too few results')
 
 
-def profile_single(day, solver, samples: int):
-    start = time.perf_counter()
+def profile_single(day: int, solver: SolverType, samples: int) -> float:
+    start: float = time.perf_counter()
     for _ in range(samples):
         with load_input_file(day, example=False) as file:
             active_solver = solver((line.strip('\n') for line in file))
             assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
-    average_time = (time.perf_counter() - start) / samples
+    average_time: float = (time.perf_counter() - start) / samples
     return average_time
 
 
-def align_decimal(value: float, leading_figures, decimal_places: int):
+def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
     formatted = f'{value:.{decimal_places}f}'
     actual_leading_figures = len(formatted) - 1 - decimal_places
     assert (actual_leading_figures <= leading_figures), f'cannot format decimal {value} as specified'
-    formatted = ' ' * (leading_figures - actual_leading_figures) + formatted
-    return formatted
+    return ' ' * (leading_figures - actual_leading_figures) + formatted
 
 
-def print_table_header(max_title: int, leading_figures: int, decimal_places: int):
+def print_profile_header(samples: int, max_title: int, leading_figures: int, decimal_places: int) -> None:
+    print(f'profiling all solvers with {samples} samples . . ')
+    print()
     print(f'| Day | {'Title':<{max_title}} | {'Runtime':>{leading_figures + decimal_places + 5}} |')
     print(f'|-----|{'-' * (max_title + 2)}|{'-' * (leading_figures + decimal_places + 5 + 2)}|')
 
 
-def profile(samples: int):
-    print(f'profiling all solvers with {samples} samples . . ')
-    print()
+def print_profile_row(day: int, title: str, max_title: int, average_time: float, leading_figures: int, decimal_places: int) -> None:
+    print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, leading_figures, decimal_places)} sec |')
+
+
+def profile(samples: int) -> None:
     max_title = max(len(title) for title, _ in SOLVER_LIST.values())
-    print_table_header(max_title, 4, 6)
+    print_profile_header(samples, max_title, 3, 6)
     for day in sorted(SOLVER_LIST.keys()):
         day, title, solver = get_solver_for(day)
         average_time = profile_single(day, solver, samples)
-        print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, 4, 6)} sec |')
+        print_profile_row(day, title, max_title, average_time, 3, 6)
