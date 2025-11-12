@@ -6,13 +6,13 @@ from .debug import print
 
 __all__ = ['solve01']
 
-def solve01(file: Iterator[str]) -> Iterator[int]:
+def solve01(lines: Iterator[str]) -> Iterator[int]:
 
     part1: int = 0
     part2: int = 1
 
     # placeholder logic to test the correct file input01.txt or example01.txt is loaded
-    for line in file:
+    for line in lines:
         value: int = int(line)
         part1 += value
         part2 *= value
