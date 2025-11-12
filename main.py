@@ -1,3 +1,5 @@
+import time
+
 import solvers
 import sys
 
@@ -19,20 +21,41 @@ if example_str is not None:
         print(f"expected 'example' or nothing for trialing argument, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
         sys.exit(1)
 
-# if 'latest', allow `solve` to choose the latest puzzle
-if arg == 'latest':
-    status = solvers.solve(None, example)
-    sys.exit(status)
+day: int | None
+run_all: bool = False
 
-# parse the input day
+if arg == 'latest':
+    # if 'latest', allow `solve` to choose the latest puzzle
+    day = None
+if arg == 'all':
+    # if 'all', solve all puzzles
+    if example:
+        print(f"got 'example' with 'all', no supported", file=sys.stderr, end='\n', flush=True)
+        sys.exit(1)
+    day = None
+    run_all = True
+else:
+    # parse the input day
+    try:
+        day: int = int(arg)
+        if not 1 <= day <= 12:
+            raise ValueError
+    except ValueError:
+        print(f"expected 'latest', 'all', or day number as integer 1 to 12, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
+        sys.exit(1)
+
+# request solver(s)
 try:
-    day: int = int(arg)
-    if not 1 <= day <= 12:
-        raise ValueError
-except ValueError:
-    print(f"expected 'latest', or day number as integer 1 to 12, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
+
+    if not run_all:
+        solvers.solve(day, example)
+    else:
+        solvers.profile(samples=100)
+
+except KeyboardInterrupt as err:
+    print('solver cancelled by user', file=sys.stderr, end='\n', flush=True)
     sys.exit(1)
 
-# request solve for the specified day
-status = solvers.solve(day, example)
-sys.exit(status)
+except solvers.SolverError as err:
+    print(err, file=sys.stderr, end='\n', flush=True)
+    sys.exit(1)
