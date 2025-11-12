@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Puzzles" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Profile All Puzzles" type="PythonConfigurationType" factoryName="Python">
     <module name="advent-of-code-2025" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />

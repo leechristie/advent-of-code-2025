@@ -1,5 +1,3 @@
-import time
-
 import solvers
 import sys
 
@@ -27,7 +25,7 @@ run_all: bool = False
 if arg == 'latest':
     # if 'latest', allow `solve` to choose the latest puzzle
     day = None
-if arg == 'all':
+elif arg == 'all':
     # if 'all', solve all puzzles
     if example:
         print(f"got 'example' with 'all', no supported", file=sys.stderr, end='\n', flush=True)
@@ -40,7 +38,7 @@ else:
         day: int = int(arg)
         if not 1 <= day <= 12:
             raise ValueError
-    except ValueError:
+    except ValueError as ex:
         print(f"expected 'latest', 'all', or day number as integer 1 to 12, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
         sys.exit(1)
 

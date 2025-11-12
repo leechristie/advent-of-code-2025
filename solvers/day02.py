@@ -10,7 +10,7 @@ def solve02(file: Iterator[str]) -> Iterator[int]:
     part1: int = 0
     part2: int = 1
 
-    # placeholder logic to test the correct file input00.txt or example00.txt is loaded
+    # placeholder logic to test the correct file input02.txt or example02.txt is loaded
     for line in file:
         value: int = int(line)
         part1 += value

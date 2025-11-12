@@ -1,7 +1,7 @@
+import sys
+
 from .days import *
 
-import sys
-import os
 import time
 
 __all__ = ['SolverError', 'solve', 'profile']
@@ -26,10 +26,11 @@ def get_solver_for(day: int | None=None) -> tuple[int, str, SolverType]:
 
 def print_header(day: int, title: str, example: bool=False):
     print('Advent of Code 2025')
+    print(f'Day {day} - {title}')
     if example:
-        print(f'Day {day} - {title} (Example Input)')
-    else:
-        print(f'Day {day} - {title}')
+        time.sleep(0.01)
+        print(f'currently using example input file', file=sys.stderr, end='\n', flush=True)
+        time.sleep(0.01)
 
 
 def load_input_file(day: int | None=None, example: bool=False):
