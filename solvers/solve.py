@@ -1,6 +1,8 @@
 import sys
+from functools import partial
 from io import TextIOWrapper
 
+from .color import ASCII_RED, color_print, ASCII_YELLOW
 from .days import *
 
 import time
@@ -29,9 +31,7 @@ def print_header(day: int, title: str, example: bool=False) -> None:
     print('Advent of Code 2025')
     print(f'Day {day} - {title}')
     if example:
-        time.sleep(0.1)
-        print(f'currently using example input file', file=sys.stderr, end='\n', flush=True)
-        time.sleep(0.1)
+        color_print(f'currently using example input file', color=ASCII_YELLOW)
 
 
 def load_input_file(day: int | None=None, example: bool=False) -> TextIOWrapper:
@@ -52,8 +52,15 @@ def solve(day: int | None=None, example: bool=False) -> None:
             if not hasattr(active_solver, '__next__'):
                 raise SolverError(f'solver for day {day} did not yield any results')
 
-            print(f'Part 1: {next(active_solver)}', flush=True)
-            print(f'Part 2: {next(active_solver)}', flush=True)
+            print_result = partial(color_print, color=ASCII_YELLOW) if example else print
+
+            part1 = next(active_solver)
+            print('Part 1: ', end='', flush=True)
+            print_result(part1, end='\n', flush=True)
+
+            part2 = next(active_solver)
+            print('Part 2: ', end='', flush=True)
+            print_result(part2, end='\n', flush=True)
 
             try:
                 next(active_solver)

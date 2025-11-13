@@ -1,12 +1,15 @@
-import time
 import sys
+from functools import partial
+from typing import TextIO
+
+from solvers.color import *
 
 __PRINT = print
 
 __all__ = ['print']
 
-# wrapper for print to default to STDERR
-def print(*args, sep=' ', end='\n', file=sys.stderr) -> None:
-    time.sleep(0.005)
-    __PRINT(*args, sep=sep, end=end, file=file, flush=True)
-    time.sleep(0.005)
+print = partial(color_print, color=ASCII_GREEN)
+
+def print(*args, sep: str=' ', end: str='\n', file: TextIO=sys.stdout, flush: bool=True) -> None:
+    color_print(*args, sep=sep, end=end, file=file, flush=flush, color=ASCII_GREEN)
+
