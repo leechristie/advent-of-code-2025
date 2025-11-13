@@ -8,8 +8,6 @@ __PRINT = print
 
 __all__ = ['print']
 
-print = partial(color_print, color=ASCII_GREEN)
-
 def print(*args, sep: str=' ', end: str='\n', file: TextIO=sys.stdout, flush: bool=True) -> None:
     color_print(*args, sep=sep, end=end, file=file, flush=flush, color=ASCII_GREEN)
 
