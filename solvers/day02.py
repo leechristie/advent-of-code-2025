@@ -8,6 +8,8 @@ __all__ = ['solve02']
 
 def solve02(lines: Iterator[str]) -> Iterator[int]:
 
+    print('hello world, testing debug print in solver . . .')
+
     part1: int = 0
     part2: int = 1
 
@@ -16,8 +18,6 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
         value: int = int(line)
         part1 += value
         part2 *= value
-
-    print('hello wrold')
 
     time.sleep(random.randint(1, 40) / 10000)
     yield part1
