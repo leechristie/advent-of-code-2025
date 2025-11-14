@@ -2,8 +2,6 @@ import time
 from typing import Iterator
 import random
 
-from .debug import print
-
 __all__ = ['solve01']
 
 def solve01(lines: Iterator[str]) -> Iterator[int]:

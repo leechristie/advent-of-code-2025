@@ -1,11 +1,9 @@
-import sys
 from functools import partial
 from io import TextIOWrapper
-
-from .color import ASCII_RED, color_print, ASCII_YELLOW
-from .days import *
-
 import time
+
+from .color import color_print, ASCII_YELLOW
+from .days import *
 
 __all__ = ['SolverError', 'solve', 'profile']
 
@@ -35,7 +33,7 @@ def print_header(day: int, title: str, example: bool=False) -> None:
 
 
 def load_input_file(day: int | None=None, example: bool=False) -> TextIOWrapper:
-    filename = f'input/{"example" if example else "input"}{day:02}.txt'
+    filename = f'input/2025/{"example" if example else "input"}{day:02}.txt'
     try:
         return open(filename)
     except FileNotFoundError:
