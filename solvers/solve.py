@@ -2,7 +2,7 @@ from functools import partial
 from io import TextIOWrapper
 import time
 
-from .color import color_print, ASCII_YELLOW
+from printing.color import color_print, ASCII_YELLOW
 from .days import *
 
 __all__ = ['SolverError', 'solve', 'profile']

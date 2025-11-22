@@ -1,6 +1,6 @@
 from functools import partial
 
-from solvers.color import *
+from .color import *
 
 __PRINT = print
 

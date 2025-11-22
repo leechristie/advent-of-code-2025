@@ -2,7 +2,7 @@ import time
 from typing import Iterator
 import random
 
-from .debug import print
+from printing.debug import print
 
 __all__ = ['solve02']
 
