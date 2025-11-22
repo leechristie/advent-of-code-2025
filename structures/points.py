@@ -4,7 +4,7 @@ from typing import ClassVar
 
 
 @dataclass
-class Dimension:
+class Dimensions:
 
     width: int
     height: int
@@ -17,6 +17,10 @@ class Dimension:
 
     def __str__(self) -> str:
         return f'{self.width}x{self.height}'
+
+    def __contains__(self, point: Point) -> bool:
+        assert type(point) == Point
+        return point == point % self
 
 
 @dataclass
@@ -42,7 +46,7 @@ class Point:
     def __sub__(self, other: Point) -> Velocity:
         return Velocity(dx=self.x-other.x, dy=self.y-other.y)
 
-    def __mod__(self, other: Dimension) -> Point:
+    def __mod__(self, other: Dimensions) -> Point:
         return Point(x=self.x%other.width, y=self.y%other.height)
 
 
