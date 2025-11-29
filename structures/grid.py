@@ -1,8 +1,6 @@
 from __future__ import annotations
-
 import numpy as np
-
-from typing import TextIO
+from typing import TextIO, Any
 
 from structures.points import Dimensions, Point
 
@@ -88,15 +86,15 @@ class Grid:
             raise AssertionError(f'unexpected symbol populating cells: {symbol!r}')
         self.cells[point.y, point.x] = number
 
-    def copy(self) -> Grid:
-        return Grid(self.cells.copy(), self.dimensions, self.symbols)
-
-    def __eq__(self, other: Grid) -> bool:
+    def __eq__(self, other: Any) -> bool:
         return (type(other) == Grid
                 and self.symbols == other.symbols
                 and self.dimensions == other.dimensions
                 and self.cells.dtype is self.cells.dtype
                 and np.array_equal(self.cells, other.cells))
+
+    def copy(self) -> Grid:
+        return Grid(self.cells.copy(), self.dimensions, self.symbols)
 
     def freeze(self) -> FrozenGrid:
         return FrozenGrid(self)
@@ -122,7 +120,7 @@ class FrozenGrid:
         return rv.strip('\n')
 
     def __repr__(self) -> str:
-        return f'FrozenGrid(Grid({self.cells!r}, {self.dimensions!r}, {self.symbols!r}))'
+        return f'Grid({self.cells!r}, {self.dimensions!r}, {self.symbols!r}).freeze()'
 
     def __getitem__(self, point: Point) -> str:
         assert type(point) == Point and point in self.dimensions
@@ -131,7 +129,7 @@ class FrozenGrid:
     def __hash__(self) -> int:
         return hash((tuple(self.cells.reshape((-1, ))), self.symbols))
 
-    def __eq__(self, other: Grid) -> bool:
+    def __eq__(self, other: Any) -> bool:
         return (type(other) == Grid
                 and self.symbols == other.symbols
                 and self.dimensions == other.dimensions
