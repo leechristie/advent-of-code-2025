@@ -20,18 +20,24 @@ def click1(position: int, zeros: int, direction: Literal['L', 'R'], distance: in
 
 
 def click2(position: int, zeros: int, direction: Literal['L', 'R'], distance: int) -> tuple[int, int]:
-    click: int = 1 if direction == 'R' else -1
     whole_turns: int = distance // DIAL_NUMBERS
     zeros += whole_turns
     distance = distance % DIAL_NUMBERS
-    for _ in range(distance):
-        position += click
-        position %= DIAL_NUMBERS
-        zeros += 1 if position == 0 else 0
+    if direction == 'R':
+        position += distance
+        if position >= DIAL_NUMBERS:  # passing or landing on 0 going RIGHT
+            zeros += 1
+    else:
+        if position == 0:  # starting from 0 cannot roll over
+            position -= distance
+        else:
+            position -= distance
+            if position <= 0:  # passing or landing on 0 going LEFT
+                zeros += 1
+    position %= DIAL_NUMBERS
     return position, zeros
 
 
-# Runtime: 9 ms
 def solve01(lines: Iterator[str]) -> Iterator[int]:
 
     position: int = 50
