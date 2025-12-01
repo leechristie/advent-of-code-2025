@@ -8,7 +8,7 @@ My solve times are given in GMT. Puzzles unlock at 5:00 a.m.
 
 | | Day | Part 1 | Part 2 | Runtime |
 |:------|:---------------------------------------------------------------|------------:|------------:|--------:|
-| ⭐️⭐️ | [Day 1: Secret Entrance](https://adventofcode.com/2025/day/1) | 8:25 a.m. | 8:52 a.m. | 9 ms |
+| ⭐️⭐️ | [Day 1: Secret Entrance](https://adventofcode.com/2025/day/1) | 8:25 a.m. | 8:52 a.m. | 2 ms |
 | | Day 2 | | | |
 | | Day 3 | | | |
 | | Day 4 | | | |
