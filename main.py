@@ -1,6 +1,8 @@
 import solvers
 import sys
 
+from printing.color import color_print, ASCII_RED
+
 if len(sys.argv) != 2 and len(sys.argv) != 3:
     print(f'expected 1 or 2 arguments to main.py, got {len(sys.argv) - 1} arg(s)', file=sys.stderr, end='\n', flush=True)
     sys.exit(1)
@@ -44,9 +46,9 @@ try:
         solvers.profile(samples=100)
 
 except KeyboardInterrupt as err:
-    print('solver cancelled by user', file=sys.stderr, end='\n', flush=True)
+    color_print('solver cancelled by user', end='\n', flush=True, color=ASCII_RED)
     sys.exit(1)
 
 except solvers.SolverError as err:
-    print(err, file=sys.stderr, end='\n', flush=True)
+    color_print(err, end='\n', flush=True, color=ASCII_RED)
     sys.exit(1)
