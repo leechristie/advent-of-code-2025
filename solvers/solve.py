@@ -80,6 +80,17 @@ def profile_single(day: int, solver: SolverType, samples: int) -> float:
     return average_time
 
 
+def profile_single_pre_loaded(day: int, solver: SolverType, samples: int) -> float:
+    start: float = time.perf_counter()
+    with load_input_file(day, example=False) as file:
+        lines = [line.strip('\n') for line in file]
+    for _ in range(samples):
+        active_solver = solver(iter(lines))
+        assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
+    average_time: float = (time.perf_counter() - start) / samples
+    return average_time
+
+
 def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
     formatted = f'{value:.{decimal_places}f}'
     actual_leading_figures = len(formatted) - 1 - decimal_places
@@ -103,5 +114,5 @@ def profile(samples: int) -> None:
     print_profile_header(samples, max_title, 3, 6)
     for day in sorted(SOLVER_LIST.keys()):
         day, title, solver = get_solver_for(day)
-        average_time = profile_single(day, solver, samples)
+        average_time = profile_single_pre_loaded(day, solver, samples)
         print_profile_row(day, title, max_title, average_time, 3, 6)
