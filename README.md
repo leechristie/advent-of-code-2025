@@ -6,9 +6,11 @@ Not using any coding assistants. #NoAI #NoClankers
 
 My solve times are given in GMT. Puzzles unlock at 5:00 a.m.
 
+Runtime excludes disk access time.
+
 | | Day | Part 1 | Part 2 | Runtime |
 |:------|:---------------------------------------------------------------|------------:|------------:|--------:|
-| ⭐️⭐️ | [Day 1: Secret Entrance](https://adventofcode.com/2025/day/1) | 8:25 a.m. | 8:52 a.m. | 2 ms |
+| ⭐️⭐️ | [Day 1: Secret Entrance](https://adventofcode.com/2025/day/1) | 8:25 a.m. | 8:52 a.m. | 1.7 ms |
 | | Day 2 | | | |
 | | Day 3 | | | |
 | | Day 4 | | | |
