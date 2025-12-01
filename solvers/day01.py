@@ -1,25 +1,48 @@
-from typing import Iterator
-from printing.debug import print
+from typing import Iterator, Literal, cast
 
 __all__ = ['solve01']
 
+DIAL_NUMBERS: int = 100
+
+def parse_step(line: str) -> tuple[Literal['L', 'R'], int]:
+    direction: str = line[0]
+    distance: int = int(line[1:])
+    assert direction in ('L', 'R')
+    direction_literal = cast(Literal['L', 'R'], direction)
+    return direction_literal, distance
+
+
+def click1(position: int, zeros: int, direction: Literal['L', 'R'], distance: int) -> tuple[int, int]:
+    position += distance if direction == 'R' else -distance
+    position %= DIAL_NUMBERS
+    zeros += 1 if position == 0 else 0
+    return position, zeros
+
+
+def click2(position: int, zeros: int, direction: Literal['L', 'R'], distance: int) -> tuple[int, int]:
+    click: int = 1 if direction == 'R' else -1
+    whole_turns: int = distance // DIAL_NUMBERS
+    zeros += whole_turns
+    distance = distance % DIAL_NUMBERS
+    for _ in range(distance):
+        position += click
+        position %= DIAL_NUMBERS
+        zeros += 1 if position == 0 else 0
+    return position, zeros
+
+
+# Runtime: 9 ms
 def solve01(lines: Iterator[str]) -> Iterator[int]:
 
-    DIAL_NUMBERS: int = 100
-    dial_position: int = 50
+    position: int = 50
 
-    part1: int = 0
+    zeros1: int = 0
+    zeros2: int = 0
 
-    print(f'dial starts {dial_position}')
     for line in lines:
-        direction: str = line[0]
-        distance: int = int(line[1:])
-        assert direction in ('L', 'R')
-        dial_position += distance if direction == 'R' else -distance
-        dial_position %= DIAL_NUMBERS
-        if dial_position == 0:
-            part1 += 1
-        print(f'{direction}, {distance} dial at {dial_position}')
+        direction, distance = parse_step(line)
+        _, zeros1 = click1(position, zeros1, direction, distance)
+        position, zeros2 = click2(position, zeros2, direction, distance)
 
-    yield part1
-
+    yield zeros1
+    yield zeros2
