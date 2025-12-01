@@ -1,22 +1,25 @@
-import time
 from typing import Iterator
-import random
+from printing.debug import print
 
 __all__ = ['solve01']
 
 def solve01(lines: Iterator[str]) -> Iterator[int]:
 
+    DIAL_NUMBERS: int = 100
+    dial_position: int = 50
+
     part1: int = 0
-    part2: int = 1
 
-    # placeholder logic to test the correct file input01.txt or example01.txt is loaded
+    print(f'dial starts {dial_position}')
     for line in lines:
-        value: int = int(line)
-        part1 += value
-        part2 *= value
+        direction: str = line[0]
+        distance: int = int(line[1:])
+        assert direction in ('L', 'R')
+        dial_position += distance if direction == 'R' else -distance
+        dial_position %= DIAL_NUMBERS
+        if dial_position == 0:
+            part1 += 1
+        print(f'{direction}, {distance} dial at {dial_position}')
 
-    time.sleep(random.randint(1, 10) / 10000)
     yield part1
 
-    time.sleep(random.randint(1, 50) / 3000)  # sleep to test Part 1 gets output by `solve` before Part 2 is done
-    yield part2
