@@ -4,25 +4,24 @@ __all__ = ['solve01']
 
 DIAL_NUMBERS: int = 100
 
-def parse_step(line: str) -> tuple[Literal['L', 'R'], int]:
+def parse_step(line: str) -> tuple[bool, int]:
     direction: str = line[0]
     distance: int = int(line[1:])
-    direction_literal = cast(Literal['L', 'R'], direction)
-    return direction_literal, distance
+    return direction == 'R', distance
 
 
-def click1(position: int, zeros: int, direction: Literal['L', 'R'], distance: int) -> tuple[int, int]:
-    position += distance if direction == 'R' else -distance
+def click1(position: int, zeros: int, is_right: bool, distance: int) -> tuple[int, int]:
+    position += distance if is_right else -distance
     position %= DIAL_NUMBERS
     zeros += 1 if position == 0 else 0
     return position, zeros
 
 
-def click2(position: int, zeros: int, direction: Literal['L', 'R'], distance: int) -> tuple[int, int]:
+def click2(position: int, zeros: int, is_right: bool, distance: int) -> tuple[int, int]:
     whole_turns: int = distance // DIAL_NUMBERS
     zeros += whole_turns
     distance = distance % DIAL_NUMBERS
-    if direction == 'R':
+    if is_right:
         position += distance
         if position >= DIAL_NUMBERS:  # passing or landing on 0 going RIGHT
             zeros += 1
@@ -45,9 +44,9 @@ def solve01(lines: Iterator[str]) -> Iterator[int]:
     zeros2: int = 0
 
     for line in lines:
-        direction, distance = parse_step(line)
-        _, zeros1 = click1(position, zeros1, direction, distance)
-        position, zeros2 = click2(position, zeros2, direction, distance)
+        is_right, distance = parse_step(line)
+        _, zeros1 = click1(position, zeros1, is_right, distance)
+        position, zeros2 = click2(position, zeros2, is_right, distance)
 
     yield zeros1
     yield zeros2
