@@ -15,25 +15,12 @@ def ranges(lines: Iterator[str]) -> Iterator[tuple[str, str]]:
             yield '1' + '0' * len(first), last  # 1000 to yyyy
 
 
-def all_ids_in_range(first: str, last: str) -> Iterator[str]:
-    first_int = int(first)
-    second_int = int(last)
-    for product_id in range(first_int, second_int + 1):
-        yield str(product_id)
-
-
 def is_repeat(product_id: str, sequence_length: int) -> bool:
     length: int = len(product_id)
     num_sequences: int = length // sequence_length
     sequence: str = product_id[:sequence_length]
     expected_sequence: str = sequence * num_sequences
     return product_id == expected_sequence
-
-
-def calc_max_check(product_id: str) -> int:
-    if len(product_id) % 2 == 0:
-        return len(product_id) // 2
-    return len(product_id) // 3
 
 
 def cache_part2_potential_lengths(potential_sequence_lengths: list[list[int]], product_length: int) -> list[int]:
