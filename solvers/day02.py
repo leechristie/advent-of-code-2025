@@ -51,13 +51,13 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
 
     potential_sequence_lengths: list[list[int]] = []
 
-    invalid_ids = set()
     part1 = 0
+    part2 = 0
 
     for first, last in ranges(lines):
 
+        invalid_ids = set()
         product_length = len(first)
-
         potential = cache_part2_potential_lengths(potential_sequence_lengths, product_length)
 
         for sequence_length in potential:
@@ -67,12 +67,11 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
             for prefix in range(first_prefix, last_prefix + 1):
                 expected_invalid_id: int = int(str(prefix) * num_sequences)
                 if int(first) <= expected_invalid_id <= int(last):
-                    invalid_ids.add(expected_invalid_id)
+                    if expected_invalid_id not in invalid_ids:
+                        invalid_ids.add(expected_invalid_id)
+                        part2 += expected_invalid_id
                     if num_sequences == 2:
                         part1 += expected_invalid_id
 
     yield part1
-    # assert part1 == 64215794229
-
-    yield sum(invalid_ids)
-    # assert sum(invalid_ids) == 85513235135
+    yield part2
