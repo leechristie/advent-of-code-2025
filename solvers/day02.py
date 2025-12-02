@@ -1,7 +1,5 @@
 from typing import Iterator
 
-from printing.debug import print
-
 
 def ranges(lines: Iterator[str]) -> Iterator[tuple[str, str]]:
     tokens = next(lines).split(',')
@@ -13,14 +11,6 @@ def ranges(lines: Iterator[str]) -> Iterator[tuple[str, str]]:
             # split the range if different lengths
             yield first, '9' * len(first)       # xxx to 999
             yield '1' + '0' * len(first), last  # 1000 to yyyy
-
-
-def is_repeat(product_id: str, sequence_length: int) -> bool:
-    length: int = len(product_id)
-    num_sequences: int = length // sequence_length
-    sequence: str = product_id[:sequence_length]
-    expected_sequence: str = sequence * num_sequences
-    return product_id == expected_sequence
 
 
 def cache_part2_potential_lengths(potential_sequence_lengths: list[list[int]], product_length: int) -> list[int]:
