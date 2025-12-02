@@ -41,7 +41,7 @@ def cache_part2_potential_lengths(potential_sequence_lengths: list[list[int]], p
         potential_sequence_lengths.append([])
     potential: list[int] = potential_sequence_lengths[product_length]
     if not potential:
-        for sequence_length in range(1, product_length // 2 + 1):  # was // 3
+        for sequence_length in range(1, product_length // 2 + 1):
             if product_length % sequence_length == 0:
                 potential.append(sequence_length)
     return potential
