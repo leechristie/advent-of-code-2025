@@ -1,8 +1,4 @@
-from itertools import product
 from typing import Iterator
-
-from mypy.checkexpr import defaultdict
-from pygments.lexer import default
 
 from printing.debug import print
 
@@ -40,49 +36,43 @@ def calc_max_check(product_id: str) -> int:
     return len(product_id) // 3
 
 
+def cache_part2_potential_lengths(potential_sequence_lengths: list[list[int]], product_length: int) -> list[int]:
+    while len(potential_sequence_lengths) <= product_length:
+        potential_sequence_lengths.append([])
+    potential: list[int] = potential_sequence_lengths[product_length]
+    if not potential:
+        for sequence_length in range(1, product_length // 2 + 1):  # was // 3
+            if product_length % sequence_length == 0:
+                potential.append(sequence_length)
+    return potential
+
+
 def solve02(lines: Iterator[str]) -> Iterator[int]:
 
-    part1: int = 0
-    part2: int = 0
-
-    # lengths to check for part 2 (excludes half the length, which is checked separately)
     potential_sequence_lengths: list[list[int]] = []
+
+    invalid_ids = set()
+    part1 = 0
 
     for first, last in ranges(lines):
 
         product_length = len(first)
-        product_length_is_even = product_length % 2 == 0
 
-        for product_id in all_ids_in_range(first, last):
+        potential = cache_part2_potential_lengths(potential_sequence_lengths, product_length)
 
-            is_invalid = False
-
-            if product_length_is_even:
-                if is_repeat(product_id, product_length // 2):
-                    part1 += int(product_id)
-                    is_invalid = True
-
-            if not is_invalid and product_length > 2:
-
-                # cache potential sequence lengths for part 2
-                while len(potential_sequence_lengths) <= product_length - 3:
-                    potential_sequence_lengths.append([])
-                potential: list[int] = potential_sequence_lengths[product_length - 3]
-                if not potential:
-                    for sequence_length in range(1, product_length // 3 + 1):
-                        if product_length % sequence_length == 0:
-                            potential.append(sequence_length)
-
-                # check potential sequence lengths (other than half the length)
-                for sequence_length in potential:
-                    if is_repeat(product_id, sequence_length):
-                        is_invalid = True
-                        break
-
-            if is_invalid:
-                part2 += int(product_id)
+        for sequence_length in potential:
+            num_sequences: int = product_length // sequence_length
+            first_prefix = int(first[:sequence_length])
+            last_prefix = int(last[:sequence_length])
+            for prefix in range(first_prefix, last_prefix + 1):
+                expected_invalid_id: int = int(str(prefix) * num_sequences)
+                if int(first) <= expected_invalid_id <= int(last):
+                    invalid_ids.add(expected_invalid_id)
+                    if num_sequences == 2:
+                        part1 += expected_invalid_id
 
     yield part1
-    # assert 1227775554 == part1 or 64215794229 == part1
-    yield part2
-    # assert 4174379265 == part2 or 85513235135 == part2
+    # assert part1 == 64215794229
+
+    yield sum(invalid_ids)
+    # assert sum(invalid_ids) == 85513235135
