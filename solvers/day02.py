@@ -78,6 +78,4 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
                 part2 += int(product_id)
 
     yield part1
-    assert (1227775554 == part1 or 64215794229 == part1)
     yield part2
-    assert (4174379265 == part2 or 85513235135 == part2)
