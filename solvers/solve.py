@@ -108,7 +108,7 @@ def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
     samples: int = samples_for_single_time(single_time)
 
     # profiling
-    start: float = time.perf_counter()
+    start = time.perf_counter()
     for _ in range(samples):
         active_solver = solver(iter(lines))
         assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
