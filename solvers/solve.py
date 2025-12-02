@@ -5,7 +5,7 @@ import time
 from printing.color import color_print, ASCII_YELLOW
 from .days import *
 
-__all__ = ['SolverError', 'solve', 'profile']
+__all__ = ['SolverError', 'solve_all', 'solve', 'profile']
 
 
 class SolverError(Exception):
@@ -38,6 +38,12 @@ def load_input_file(day: int | None=None, example: bool=False) -> TextIOWrapper:
         return open(filename)
     except FileNotFoundError:
         raise SolverError(f'missing input file {filename}')
+
+
+def solve_all() -> None:
+    for day in SOLVER_LIST:
+        print()
+        solve(day, example=False)
 
 
 def solve(day: int | None=None, example: bool=False) -> None:

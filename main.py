@@ -12,6 +12,7 @@ example_str: str | None = sys.argv[-1] if len(sys.argv) == 3 else None
 example: bool = False
 day: int | None = None
 run_all: bool = False
+profile_all: bool = False
 
 if example_str is not None:
     if example_str == 'example':
@@ -22,28 +23,34 @@ if example_str is not None:
 
 if arg == 'latest':
     pass
-
 elif arg == 'all':
     if example:
         print(f"got 'example' with 'all', not supported", file=sys.stderr, end='\n', flush=True)
         sys.exit(1)
     day = None
     run_all = True
-
+elif arg == 'profile':
+    if example:
+        print(f"got 'example' with 'profile', not supported", file=sys.stderr, end='\n', flush=True)
+        sys.exit(1)
+    day = None
+    profile_all = True
 else:
     try:
         day = int(arg)
         if not 1 <= day <= 12:
             raise ValueError
     except ValueError as ex:
-        print(f"expected 'latest', 'all', or day number as integer 1 to 12, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
+        print(f"expected 'latest', 'all', 'profile', or day number as integer 1 to 12, got {repr(arg)}", file=sys.stderr, end='\n', flush=True)
         sys.exit(1)
 
 try:
-    if not run_all:
-        solvers.solve(day, example)
-    else:
+    if profile_all:
         solvers.profile()
+    elif run_all:
+        solvers.solve_all()
+    else:
+        solvers.solve(day, example)
 
 except KeyboardInterrupt as err:
     color_print('solver cancelled by user', end='\n', flush=True, color=ASCII_RED)
