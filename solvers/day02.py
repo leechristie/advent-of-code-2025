@@ -11,7 +11,12 @@ def ranges(lines: Iterator[str]) -> Iterator[tuple[str, str]]:
     tokens = next(lines).split(',')
     for token in tokens:
         first, last = token.split('-')
-        yield first, last
+        if len(first) == len(last):
+            yield first, last
+        else:
+            # split the range if different lengths
+            yield first, '9' * len(first)       # xxx to 999
+            yield '1' + '0' * len(first), last  # 1000 to yyyy
 
 
 def all_ids_in_range(first: str, last: str) -> Iterator[str]:
@@ -40,17 +45,17 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
     part1: int = 0
     part2: int = 0
 
-    all_ranges = list(ranges(lines))
-
     # lengths to check for part 2 (excludes half the length, which is checked separately)
     potential_sequence_lengths: list[list[int]] = []
 
-    for first, last in all_ranges:
+    for first, last in ranges(lines):
+
+        product_length = len(first)
+        product_length_is_even = product_length % 2 == 0
+
         for product_id in all_ids_in_range(first, last):
 
             is_invalid = False
-            product_length = len(product_id)
-            product_length_is_even = product_length % 2 == 0
 
             if product_length_is_even:
                 if is_repeat(product_id, product_length // 2):
@@ -78,4 +83,6 @@ def solve02(lines: Iterator[str]) -> Iterator[int]:
                 part2 += int(product_id)
 
     yield part1
+    # assert 1227775554 == part1 or 64215794229 == part1
     yield part2
+    # assert 4174379265 == part2 or 85513235135 == part2
