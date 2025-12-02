@@ -1,4 +1,4 @@
-from typing import Iterator, Literal, cast
+from typing import Iterator
 
 __all__ = ['solve01']
 
@@ -17,36 +17,30 @@ def click1(position: int, zeros: int, is_right: bool, distance: int) -> tuple[in
     return position, zeros
 
 
-def click2(position: int, zeros: int, is_right: bool, distance: int) -> tuple[int, int]:
+def click2(position: int, zeros: int, is_right: bool, distance: int) -> int:
     whole_turns: int = distance // DIAL_NUMBERS
     zeros += whole_turns
     distance = distance % DIAL_NUMBERS
     if is_right:
-        position += distance
-        if position >= DIAL_NUMBERS:  # passing or landing on 0 going RIGHT
-            zeros += 1
+        if position + distance >= DIAL_NUMBERS:  # passing or landing on 0 going RIGHT
+            return zeros + 1
     else:
-        if position == 0:  # starting from 0 cannot roll over
-            position -= distance
-        else:
-            position -= distance
-            if position <= 0:  # passing or landing on 0 going LEFT
-                zeros += 1
-    position %= DIAL_NUMBERS
-    return position, zeros
+        if position != 0 and position - distance <= 0:  # passing or landing on 0 going LEFT
+            return zeros + 1
+    return zeros
 
 
 def solve01(lines: Iterator[str]) -> Iterator[int]:
 
     position: int = 50
 
-    zeros1: int = 0
-    zeros2: int = 0
+    part1: int = 0
+    part2: int = 0
 
     for line in lines:
         is_right, distance = parse_step(line)
-        _, zeros1 = click1(position, zeros1, is_right, distance)
-        position, zeros2 = click2(position, zeros2, is_right, distance)
+        part2 = click2(position, part2, is_right, distance)
+        position, part1 = click1(position, part1, is_right, distance)
 
-    yield zeros1
-    yield zeros2
+    yield part1
+    yield part2
