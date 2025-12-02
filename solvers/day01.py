@@ -7,7 +7,6 @@ DIAL_NUMBERS: int = 100
 def parse_step(line: str) -> tuple[Literal['L', 'R'], int]:
     direction: str = line[0]
     distance: int = int(line[1:])
-    assert direction in ('L', 'R')
     direction_literal = cast(Literal['L', 'R'], direction)
     return direction_literal, distance
 
