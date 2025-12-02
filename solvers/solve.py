@@ -52,6 +52,8 @@ def solve(day: int | None=None, example: bool=False) -> None:
 
             print_result = partial(color_print, color=ASCII_YELLOW) if example else print
 
+            start: float = time.perf_counter()
+
             part1 = next(active_solver)
             print('Part 1: ', end='', flush=True)
             print_result(part1, end='\n', flush=True)
@@ -59,6 +61,11 @@ def solve(day: int | None=None, example: bool=False) -> None:
             part2 = next(active_solver)
             print('Part 2: ', end='', flush=True)
             print_result(part2, end='\n', flush=True)
+
+            single_time: float = time.perf_counter() - start
+
+            print('Time : ', end='', flush=True)
+            print_result(f'{single_time:.6f} sec', end='\n', flush=True)
 
             try:
                 next(active_solver)
@@ -70,25 +77,43 @@ def solve(day: int | None=None, example: bool=False) -> None:
         raise SolverError(f'solver for day {day} yielded too few results')
 
 
-def profile_single(day: int, solver: SolverType, samples: int) -> float:
-    start: float = time.perf_counter()
-    for _ in range(samples):
-        with load_input_file(day, example=False) as file:
-            active_solver = solver((line.strip('\n') for line in file))
-            assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
-    average_time: float = (time.perf_counter() - start) / samples
-    return average_time
+def samples_for_single_time(single_time: float) -> int:
+    if single_time > 0.1:
+        return 3
+    if single_time > 0.01:
+        return 30
+    if single_time > 0.001:
+        return 300
+    if single_time > 0.0_001:
+        return 3_000
+    if single_time > 0.00_001:
+        return 30_000
+    if single_time > 0.000_001:
+        return 300_000
+    return 3_000_000
 
 
-def profile_single_pre_loaded(day: int, solver: SolverType, samples: int) -> float:
-    start: float = time.perf_counter()
+def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
+
     with load_input_file(day, example=False) as file:
         lines = [line.strip('\n') for line in file]
+
+    # warm up run
+    _ = list(solver(iter(lines)))
+
+    # run once to determine sample count
+    start: float = time.perf_counter()
+    _ = list(solver(iter(lines)))
+    single_time = time.perf_counter() - start
+    samples: int = samples_for_single_time(single_time)
+
+    # profiling
+    start: float = time.perf_counter()
     for _ in range(samples):
         active_solver = solver(iter(lines))
         assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
     average_time: float = (time.perf_counter() - start) / samples
-    return average_time
+    return average_time * 1000.0
 
 
 def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
@@ -98,21 +123,21 @@ def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
     return ' ' * (leading_figures - actual_leading_figures) + formatted
 
 
-def print_profile_header(samples: int, max_title: int, leading_figures: int, decimal_places: int) -> None:
-    print(f'profiling all solvers with {samples} samples . . ')
+def print_profile_header( max_title: int, leading_figures: int, decimal_places: int) -> None:
+    print(f'profiling all solvers . . ')
     print()
-    print(f'| Day | {'Title':<{max_title}} | {'Runtime':>{leading_figures + decimal_places + 5}} |')
-    print(f'|-----|{'-' * (max_title + 2)}|{'-' * (leading_figures + decimal_places + 5 + 2)}|')
+    print(f'| Day | {'Title':<{max_title}} | {'Runtime':>{leading_figures + decimal_places + 4}} |')
+    print(f'|-----|{'-' * (max_title + 2)}|{'-' * (leading_figures + decimal_places + 5 + 1)}|')
 
 
 def print_profile_row(day: int, title: str, max_title: int, average_time: float, leading_figures: int, decimal_places: int) -> None:
-    print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, leading_figures, decimal_places)} sec |')
+    print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, leading_figures, decimal_places)} ms |')
 
 
-def profile(samples: int) -> None:
+def profile() -> None:
     max_title = max(len(title) for title, _ in SOLVER_LIST.values())
-    print_profile_header(samples, max_title, 3, 6)
+    print_profile_header(max_title, 9, 1)
     for day in sorted(SOLVER_LIST.keys()):
         day, title, solver = get_solver_for(day)
-        average_time = profile_single_pre_loaded(day, solver, samples)
-        print_profile_row(day, title, max_title, average_time, 3, 6)
+        average_time = profile_single_pre_loaded(day, solver)
+        print_profile_row(day, title, max_title, average_time, 9, 1)

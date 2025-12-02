@@ -43,7 +43,7 @@ try:
     if not run_all:
         solvers.solve(day, example)
     else:
-        solvers.profile(samples=100)
+        solvers.profile()
 
 except KeyboardInterrupt as err:
     color_print('solver cancelled by user', end='\n', flush=True, color=ASCII_RED)
