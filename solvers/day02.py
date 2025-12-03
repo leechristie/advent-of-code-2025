@@ -1,5 +1,6 @@
 from typing import Iterator
 
+__all__ = ['solve02']
 
 def ranges(lines: Iterator[str]) -> Iterator[tuple[str, str]]:
     tokens = next(lines).split(',')

@@ -1,5 +1,6 @@
 from typing import Iterator
 
+__all__ = ['solve03']
 
 def __max_joltage(bank: list[int], lower: int, bound: int, result: int, num_on: int) -> int:
 
