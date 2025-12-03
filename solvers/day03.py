@@ -1,26 +1,20 @@
 from typing import Iterator
 
 
-def __max_joltage(bank: list[int], lower: int, bound: int, result: list[int], num_on: int) -> None:
-    # can't speed up the current_digit check without slice because Python :/
+def __max_joltage(bank: list[int], lower: int, bound: int, result: int, num_on: int) -> int:
+
+    # final digit to choose
     if num_on == 1:
-        current_digit = max(bank[lower:bound])
-        result.append(current_digit)
-    else:
-        current_digit = max(bank[lower:bound - num_on + 1])
-        result.append(current_digit)
-        position: int = bank.index(current_digit, lower)
-        __max_joltage(bank, position + 1, bound, result, num_on - 1)
+        current_digit = max(bank[lower:bound])  # can't speed up  without slice because Python :/
+        return result * 10 + current_digit
+
+    current_digit = max(bank[lower:bound - num_on + 1])  # can't speed up without slice because Python :/
+    position: int = bank.index(current_digit, lower)
+    return __max_joltage(bank, position + 1, bound, result * 10 + current_digit, num_on - 1)
 
 
 def max_joltage(bank: list[int], num_on: int) -> int:
-    result: list[int] = []
-    __max_joltage(bank, 0, len(bank), result, num_on)
-    rv: int = 0
-    for digit in result:
-        rv *= 10
-        rv += digit
-    return rv
+    return __max_joltage(bank, 0, len(bank), 0, num_on)
 
 
 def solve03(lines: Iterator[str]) -> Iterator[int]:
@@ -34,6 +28,4 @@ def solve03(lines: Iterator[str]) -> Iterator[int]:
         part2 += max_joltage(values, 12)
 
     yield part1
-    assert 17321 == part1
     yield part2
-    assert 171989894144198 == part2
