@@ -1,35 +1,26 @@
 from typing import Iterator
 
 
-# slow recursive implementation, to fix
-def __max_joltage_slow(bank: list[int], num_on: int, previous_on: list[int]) -> list[int]:
-    exclusion: int = - (num_on - 1)
-    if num_on == 2:
-        assert exclusion == -1
-    if exclusion == 0:
-        look_in = bank
-    else:
-       look_in: list[int] = bank[:exclusion]
-    current_digit: int = max(look_in)
-    next_offset: int = bank.index(current_digit) + 1
+def __max_joltage(bank: list[int], lower: int, bound: int, result: list[int], num_on: int) -> None:
+    # can't speed up the current_digit check without slice because Python :/
     if num_on == 1:
-        return previous_on + [current_digit]
-    return __max_joltage_slow(bank[next_offset:], num_on-1, previous_on + [current_digit])
-
-
-def __max_joltage_fast(bank: list[int], lower: int, bound: int, result: list[int]) -> None:
-    pass  # TODO - still working on this version
+        current_digit = max(bank[lower:bound])
+        result.append(current_digit)
+    else:
+        current_digit = max(bank[lower:bound - num_on + 1])
+        result.append(current_digit)
+        position: int = bank.index(current_digit, lower)
+        __max_joltage(bank, position + 1, bound, result, num_on - 1)
 
 
 def max_joltage(bank: list[int], num_on: int) -> int:
-    return int(''.join((str(d) for d in __max_joltage_slow(bank, num_on, []))))
-    # result: list[int] = []
-    # __max_joltage_fast(bank, 0, len(bank), result)
-    # rv: int = 0
-    # for digit in result:
-    #     rv *= 10
-    #     rv += digit
-    # return rv
+    result: list[int] = []
+    __max_joltage(bank, 0, len(bank), result, num_on)
+    rv: int = 0
+    for digit in result:
+        rv *= 10
+        rv += digit
+    return rv
 
 
 def solve03(lines: Iterator[str]) -> Iterator[int]:
@@ -43,6 +34,6 @@ def solve03(lines: Iterator[str]) -> Iterator[int]:
         part2 += max_joltage(values, 12)
 
     yield part1
+    assert 17321 == part1
     yield part2
-
-    # 3.7 ms before optimising
+    assert 171989894144198 == part2
