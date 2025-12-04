@@ -7,18 +7,7 @@ from structures.points import Point
 __all__ = ['solve04']
 
 
-def elf_trip(grid: Grid) -> int:
-    num_removed: int = 0
-    for point in grid.positions():
-        if grid[point] == '@':
-            if grid.count_non_zero_neighbours(point) < 4:
-                grid[point] = 'x'
-                num_removed += 1
-    return num_removed
-
-
-# version only exists for speed optimisation - can use elf_trip for same answer
-def sparse_elf_trip(grid: Grid, roll_locations: list[Point]) -> tuple[int, list[Point]]:
+def elf_trip(grid: Grid, roll_locations: list[Point]) -> tuple[int, list[Point]]:
     num_removed: int = 0
     new_roll_locations: list[Point] = []
     removed_roll_locations: list[Point] = []
@@ -37,13 +26,12 @@ def solve04(lines: Iterator[str]) -> Iterator[int]:
     grid: Grid
     grid, _ = Grid.parse(lines, '.@x')
 
-    num_removed = elf_trip(grid)
+    roll_locations: list[Point] = grid.locations_of('@')
+    num_removed, roll_locations = elf_trip(grid, roll_locations)
     yield num_removed
 
-    grid.replace('x', '.')
-    roll_locations: list[Point] = grid.locations_of('@')
     total_removed: int = num_removed
     while num_removed:
-        num_removed, roll_locations = sparse_elf_trip(grid, roll_locations)
+        num_removed, roll_locations = elf_trip(grid, roll_locations)
         total_removed += num_removed
     yield total_removed
