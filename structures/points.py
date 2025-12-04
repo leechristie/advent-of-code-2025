@@ -49,6 +49,16 @@ class Point:
     def __mod__(self, other: Dimensions) -> Point:
         return Point(x=self.x%other.width, y=self.y%other.height)
 
+    def neighbours(self):
+        yield Point(x=self.x-1, y=self.y-1)
+        yield Point(x=self.x-1, y=self.y)
+        yield Point(x=self.x-1, y=self.y+1)
+        yield Point(x=self.x, y=self.y-1)
+        yield Point(x=self.x, y=self.y+1)
+        yield Point(x=self.x+1, y=self.y-1)
+        yield Point(x=self.x+1, y=self.y)
+        yield Point(x=self.x+1, y=self.y+1)
+
 
 Point.ORIGIN = Point(x=0, y=0)
 

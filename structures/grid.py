@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from typing import TextIO, Any
+from typing import TextIO, Any, Iterator
 
 from structures.points import Dimensions, Point
 
@@ -17,7 +17,7 @@ class Grid:
         self.symbols = symbols
 
     @staticmethod
-    def parse(file: TextIO, symbols: tuple[str, ...] | list[str] | str, unique: str | None) -> tuple[Grid, Point | None]:
+    def parse(file: Iterator[str], symbols: tuple[str, ...] | list[str] | str, unique: str | None = None) -> tuple[Grid, Point | None]:
         num_symbols: int = len(symbols)
         assert (num_symbols >= 2), 'too few symbols'
         assert (num_symbols <= 256), 'too many symbols'
@@ -98,6 +98,21 @@ class Grid:
 
     def freeze(self) -> FrozenGrid:
         return FrozenGrid(self)
+
+    def positions(self) -> Iterator[Point]:
+        for y in range(0, self.dimensions.height):
+            for x in range(0, self.dimensions.width):
+                yield Point(x=x, y=y)
+
+    def neighbours(self, point: Point) -> Iterator[Point]:
+        for neighbour in point.neighbours():
+            if neighbour in self.dimensions:
+                yield neighbour
+
+    def replace(self, old: str, new: str) -> None:
+        for point in self.positions():
+            if self[point] == old:
+                self[point] = new
 
 
 class FrozenGrid:
