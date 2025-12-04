@@ -1,5 +1,4 @@
 from typing import Iterator
-from printing.debug import print
 
 __all__ = ['solve04']
 
@@ -10,11 +9,7 @@ def elf_trip(grid: Grid) -> int:
     num_removed: int = 0
     for point in grid.positions():
         if grid[point] == '@':
-            num_neighbour_rolls = 0
-            for neighbour in grid.neighbours(point):
-                if grid[neighbour] == '@' or grid[neighbour] == 'x':
-                    num_neighbour_rolls += 1
-            if num_neighbour_rolls < 4:
+            if grid.count_non_zero_neighbours(point) < 4:
                 grid[point] = 'x'
                 num_removed += 1
     return num_removed

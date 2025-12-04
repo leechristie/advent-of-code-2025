@@ -110,10 +110,70 @@ class Grid:
                 yield neighbour
 
     def replace(self, old: str, new: str) -> None:
-        for point in self.positions():
-            if self[point] == old:
-                self[point] = new
+        try:
+            old_number: int = self.symbols.index(old)
+        except ValueError:
+            raise AssertionError(f'unexpected symbol populating cells: {old!r}')
+        try:
+            new_number: int = self.symbols.index(new)
+        except ValueError:
+            raise AssertionError(f'unexpected symbol populating cells: {new!r}')
+        for y in range(self.dimensions.height):
+            for x in range(self.dimensions.width):
+                if self.cells[y, x] == old_number:
+                    self.cells[y, x] = new_number
 
+    def count_neighbours(self, point: Point, symbol: str) -> int:
+        if point not in self.dimensions:
+            raise ValueError(f'invalid point in grid: {point}')
+        try:
+            number: int = self.symbols.index(symbol)
+        except ValueError:
+            return 0
+        rv: int = 0
+        if point.y - 1 >= 0:
+            if point.x - 1 >= 0 and self.cells[point.y - 1, point.x - 1] == number:
+                rv += 1
+            if self.cells[point.y - 1, point.x] == number:
+                rv += 1
+            if point.x + 1 < self.dimensions.width and self.cells[point.y - 1, point.x + 1] == number:
+                rv += 1
+        if point.x - 1 >= 0 and self.cells[point.y, point.x - 1] == number:
+            rv += 1
+        if point.x + 1 < self.dimensions.width and self.cells[point.y, point.x + 1] == number:
+            rv += 1
+        if point.y + 1 < self.dimensions.height:
+            if point.x - 1 >= 0 and self.cells[point.y + 1, point.x - 1] == number:
+                rv += 1
+            if self.cells[point.y + 1, point.x] == number:
+                rv += 1
+            if point.x + 1 < self.dimensions.width and self.cells[point.y + 1, point.x + 1] == number:
+                rv += 1
+        return rv
+
+    def count_non_zero_neighbours(self, point: Point) -> int:
+        if point not in self.dimensions:
+            raise ValueError(f'invalid point in grid: {point}')
+        rv: int = 0
+        if point.y - 1 >= 0:
+            if point.x - 1 >= 0 and self.cells[point.y - 1, point.x - 1]:
+                rv += 1
+            if self.cells[point.y - 1, point.x]:
+                rv += 1
+            if point.x + 1 < self.dimensions.width and self.cells[point.y - 1, point.x + 1]:
+                rv += 1
+        if point.x - 1 >= 0 and self.cells[point.y, point.x - 1]:
+            rv += 1
+        if point.x + 1 < self.dimensions.width and self.cells[point.y, point.x + 1]:
+            rv += 1
+        if point.y + 1 < self.dimensions.height:
+            if point.x - 1 >= 0 and self.cells[point.y + 1, point.x - 1]:
+                rv += 1
+            if self.cells[point.y + 1, point.x]:
+                rv += 1
+            if point.x + 1 < self.dimensions.width and self.cells[point.y + 1, point.x + 1]:
+                rv += 1
+        return rv
 
 class FrozenGrid:
 
