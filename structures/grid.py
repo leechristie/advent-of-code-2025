@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from collections.abc import Iterable
+
 import numpy as np
 from typing import TextIO, Any, Iterator
 
@@ -174,6 +177,27 @@ class Grid:
             if point.x + 1 < self.dimensions.width and self.cells[point.y + 1, point.x + 1]:
                 rv += 1
         return rv
+
+    def locations_of(self, symbol: str) -> list[Point]:
+        try:
+            number: int = self.symbols.index(symbol)
+        except ValueError:
+            raise AssertionError(f'unexpected symbol populating cells: {symbol!r}')
+        rv: list[Point] = []
+        for y in range(self.dimensions.height):
+            for x in range(self.dimensions.width):
+                if self.cells[y, x] == number:
+                    rv.append(Point(x=x, y=y))
+        return rv
+
+    def set_all(self, points: Iterable[Point], symbol: str) -> None:
+        try:
+            number: int = self.symbols.index(symbol)
+        except ValueError:
+            raise AssertionError(f'unexpected symbol populating cells: {symbol!r}')
+        for point in points:
+            self.cells[point.y, point.x] = number
+
 
 class FrozenGrid:
 
