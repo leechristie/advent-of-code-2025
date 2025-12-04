@@ -96,7 +96,9 @@ def samples_for_single_time(single_time: float) -> int:
         return 30_000
     if single_time > 0.000_001:
         return 300_000
-    return 3_000_000
+    if single_time > 0.0_000_001:
+        return 3_000_000
+    return 30_000_000
 
 
 def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
@@ -142,8 +144,8 @@ def print_profile_row(day: int, title: str, max_title: int, average_time: float,
 
 def profile() -> None:
     max_title = max(len(title) for title, _ in SOLVER_LIST.values())
-    print_profile_header(max_title, 9, 1)
+    print_profile_header(max_title, 9, 2)
     for day in sorted(SOLVER_LIST.keys()):
         day, title, solver = get_solver_for(day)
         average_time = profile_single_pre_loaded(day, solver)
-        print_profile_row(day, title, max_title, average_time, 9, 1)
+        print_profile_row(day, title, max_title, average_time, 9, 2)
