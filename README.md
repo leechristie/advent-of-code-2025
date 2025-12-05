@@ -14,7 +14,7 @@ Runtime excludes disk access time. Runtimes are rounded to 2 sig. fig.
 | ⭐️⭐️ | [Day 2: Gift Shop](https://adventofcode.com/2025/day/2)           | 8:58 a.m. | 10:21 a.m. | 0.18 ms |
 | ⭐️⭐️ | [Day 3: Lobby](https://adventofcode.com/2025/day/3)               | 8:59 a.m. |  9:15 a.m. |  1.5 ms |
 | ⭐️⭐️ | [Day 4: Printing Department](https://adventofcode.com/2025/day/4) | 8:45 a.m. |  8:57 a.m. |  190 ms |
-| ⭐️⭐️ | [Day 5: Cafeteria](https://adventofcode.com/2025/day/5)           | 8:44 a.m. | 10:40 a.m. |         |
+| ⭐️⭐️ | [Day 5: Cafeteria](https://adventofcode.com/2025/day/5)           | 8:44 a.m. | 10:40 a.m. |  2.2 ms |
 | | Day 6                                                             |           |            |         |
 | | Day 7                                                             |           |            |         |
 | | Day 8                                                             |           |            |         |
