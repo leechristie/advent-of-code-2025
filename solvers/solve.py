@@ -84,21 +84,23 @@ def solve(day: int | None=None, example: bool=False) -> None:
 
 
 def samples_for_single_time(single_time: float) -> int:
-    if single_time > 0.1:
+    if single_time > 1:
         return 3
-    if single_time > 0.01:
+    if single_time > 0.1:
         return 30
-    if single_time > 0.001:
+    if single_time > 0.01:
         return 300
+    if single_time > 0.001:
+        return 3000
     if single_time > 0.0_001:
-        return 3_000
-    if single_time > 0.00_001:
         return 30_000
-    if single_time > 0.000_001:
+    if single_time > 0.00_001:
         return 300_000
-    if single_time > 0.0_000_001:
+    if single_time > 0.000_001:
         return 3_000_000
-    return 30_000_000
+    if single_time > 0.0_000_001:
+        return 30_000_000
+    return 300_000_000
 
 
 def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
