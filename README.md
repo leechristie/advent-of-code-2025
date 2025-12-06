@@ -2,7 +2,7 @@
 
 My solutions to Eric Wastl's [Advent of Code 2025](https://adventofcode.com/2025) in Python.
 
-Not using any coding assistants. #NoAI #NoClankers
+Not using any coding assistants, or any other generative AI like chatbots. #NoAI #NoClankers
 
 | | Day                                                               |    Part 1 |     Part 2 | Runtime |
 |:------|:------------------------------------------------------------------|----------:|-----------:|--------:|
