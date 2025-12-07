@@ -103,7 +103,7 @@ def samples_for_single_time(single_time: float) -> int:
     return 300_000_000
 
 
-def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
+def profile_single_pre_loaded(day: int, solver: SolverType) -> tuple[float, int]:
 
     with load_input_file(day, example=False) as file:
         lines = [line.strip('\n') for line in file]
@@ -123,7 +123,7 @@ def profile_single_pre_loaded(day: int, solver: SolverType) -> float:
         active_solver = solver(iter(lines))
         assert (len(list(active_solver)) == 2), f'solver for day {day} did not return 2 results in profile'
     average_time: float = (time.perf_counter() - start) / samples
-    return average_time * 1000.0
+    return average_time * 1000.0, samples
 
 
 def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
@@ -136,12 +136,12 @@ def align_decimal(value: float, leading_figures, decimal_places: int) -> str:
 def print_profile_header( max_title: int, leading_figures: int, decimal_places: int) -> None:
     print(f'profiling all solvers . . ')
     print()
-    print(f'| Day | {'Title':<{max_title}} | {'Runtime':>{leading_figures + decimal_places + 4}} |')
-    print(f'|-----|{'-' * (max_title + 2)}|{'-' * (leading_figures + decimal_places + 5 + 1)}|')
+    print(f'| Day | {'Title':<{max_title}} | {'Runtime':>{leading_figures + decimal_places + 4}} | Samples Run |')
+    print(f'|-----|{'-' * (max_title + 2)}|{'-' * (leading_figures + decimal_places + 5 + 1)}|-------------|')
 
 
-def print_profile_row(day: int, title: str, max_title: int, average_time: float, leading_figures: int, decimal_places: int) -> None:
-    print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, leading_figures, decimal_places)} ms |')
+def print_profile_row(day: int, title: str, max_title: int, average_time: float, samples: int, leading_figures: int, decimal_places: int) -> None:
+    print(f'| {day:>3} | {title:<{max_title}} | {align_decimal(average_time, leading_figures, decimal_places)} ms | {samples:>11,} |')
 
 
 def profile() -> None:
@@ -149,5 +149,5 @@ def profile() -> None:
     print_profile_header(max_title, 9, 2)
     for day in sorted(SOLVER_LIST.keys()):
         day, title, solver = get_solver_for(day)
-        average_time = profile_single_pre_loaded(day, solver)
-        print_profile_row(day, title, max_title, average_time, 9, 2)
+        average_time, samples = profile_single_pre_loaded(day, solver)
+        print_profile_row(day, title, max_title, average_time, samples, 9, 2)
