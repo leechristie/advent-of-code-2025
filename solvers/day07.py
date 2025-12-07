@@ -13,13 +13,13 @@ def begin_beam(lines: Iterator[str]) -> dict[int, int]:
 def split_beams(line: str, amplitudes: dict[int, int]) -> tuple[dict[int, int], int]:
     rv: dict[int, int] = {}
     splits: int = 0
-    for i in amplitudes:
+    for i, amplitude in amplitudes.items():
         if line[i] == '^':
-            rv[i - 1] = rv.get(i - 1, 0) + amplitudes[i]
-            rv[i + 1] = rv.get(i + 1, 0) + amplitudes[i]
+            rv[i - 1] = rv.get(i - 1, 0) + amplitude
+            rv[i + 1] = rv.get(i + 1, 0) + amplitude
             splits += 1
         else:
-            rv[i] = rv.get(i, 0) + amplitudes[i]
+            rv[i] = rv.get(i, 0) + amplitude
     return rv, splits
 
 
