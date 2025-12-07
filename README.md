@@ -12,7 +12,7 @@ Not using any coding assistants, or any other generative AI like chatbots. #NoAI
 | ⭐️⭐️ | [Day 4: Printing Department](https://adventofcode.com/2025/day/4) | 8:45 a.m. |  8:57 a.m. |  190 ms |
 | ⭐️⭐️ | [Day 5: Cafeteria](https://adventofcode.com/2025/day/5)           | 8:44 a.m. | 10:40 a.m. |  2.3 ms |
 | ⭐️⭐️ | [Day 6: Trash Compactor](https://adventofcode.com/2025/day/6)     | 8:46 a.m. |  9:34 a.m. |  2.2 ms |
-| ⭐️⭐️ | [Day 7: Laboratories](https://adventofcode.com/2025/day/7)     | 9:03 a.m. | 10:07 a.m. | 0.22 ms |
+| ⭐️⭐️ | [Day 7: Laboratories](https://adventofcode.com/2025/day/7)     | 9:03 a.m. | 10:07 a.m. | 0.21 ms |
 | | Day 8                                                             |           |            |         |
 | | Day 9                                                             |           |            |         |
 | | Day 10                                                            |           |            |         |
