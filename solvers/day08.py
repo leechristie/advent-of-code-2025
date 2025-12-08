@@ -1,13 +1,10 @@
-import math
-import random
 import time
 from typing import Iterator
 
 import numpy as np
 
-from printing.color import ASCII_RED, color_print
 from printing.debug import print
-from structures.algorithms import *
+from structures.algorithms import UnionFind
 
 from structures.points import Point3D
 
@@ -33,56 +30,60 @@ def sorted_distances_squared_indexed(int_to_point: list[Point3D]) -> list[tuple[
     return pairs
 
 
-__start: float = 0
-def timer(message: str | None = None):
-    global __start
-    now: float = time.perf_counter()
-    if __start != 0:
-        if message:
-            print(message, ':', f'{(now - __start) * 1000:.1f} ms')
-        else:
-            print(f'{(now - __start) * 1000:.1f} ms')
-    __start = now
+# __start: float = 0
+# def timer(message: str | None = None):
+#     global __start
+#     now: float = time.perf_counter()
+#     if __start != 0:
+#         if message:
+#             print(message, ':', f'{(now - __start) * 1000:.2f} ms')
+#         else:
+#             print(f'{(now - __start) * 1000:.2f} ms')
+#     __start = now
 
 
 def solve08(lines: Iterator[str]) -> Iterator[int]:
 
-    #timer()
+    # timer()
 
     points = parse_points_enumerated(lines)
     num_points: int = len(points)
     num_connections_required = 10 if num_points == 20 else 1000
 
-    #timer('load points')
+    # timer('load points')
 
-    circuits: IntUnionFind = IntUnionFind(num_points)
+    circuits: UnionFind = UnionFind(num_points)
 
-    #timer('create union find')
+    # timer('create UnionFind data structure')
 
     pairs: list[tuple[int, int, int]] = sorted_distances_squared_indexed(points)
 
-    #timer('sort distances')
+    # timer('sort distances')
 
     connection_attempts: int = 0
     num_connections: int = 0
-    part1 = None
-    part2 = None
+    done_part: bool = False
     for _, index1, index2 in pairs:
         connection_attempts += 1
         if circuits.union(index1, index2):
             num_connections += 1
-        if part1 is None and connection_attempts == num_connections_required:
-            part1 = int(np.prod(sorted([len(s) for s in circuits.to_sets()], reverse=True)[:3]))
-            #timer('mst up to required connections')
+        if not done_part and connection_attempts == num_connections_required:
+            # timer("continued Kruskel's algorithm up to required connections")
+            sizes: list[int] = circuits.set_sizes()
+            # timer('got sizes')
+            sizes.sort(reverse=True)
+            # timer('sorted sizes')
+            part1: int = int(np.prod(sizes[:3]))
+            done_part = True
+            # timer('got part1 from sorted sizes')
+            # assert part1 in (40, 75680)
+            # timer('validated expected answer')
             yield part1
         if len(circuits) == 1:
-            part2 = points[index1].x * points[index2].x
-            break
-
-    #timer('remainder of mst')
-
-    assert part1 is not None
-
-    yield part2
-
-    #assert (part1, part2) in ((40, 25272), (75680, 8995844880))
+            # timer("resumed Kruskel's algorithm until MST is formed")
+            part2: int = points[index1].x * points[index2].x
+            # timer('got part2 from multiply')
+            # assert part2 in (25272, 8995844880)
+            # timer('validated expected answer')
+            yield part2
+            return
