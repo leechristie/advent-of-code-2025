@@ -32,13 +32,14 @@ class Point:
     y: int
 
     def __init__(self, *, x: int, y:int) -> None:
-        assert type(x) == int
-        assert type(y) == int
         self.x = x
         self.y = y
 
     def __str__(self) -> str:
         return f'({self.x}, {self.y})'
+
+    def __repr__(self) -> str:
+        return f'Point(x={self.x}, y={self.y})'
 
     def __add__(self, other: Velocity | Facing) -> Point:
         return Point(x=self.x+other.dx, y=self.y+other.dy)
@@ -48,6 +49,9 @@ class Point:
 
     def __mod__(self, other: Dimensions) -> Point:
         return Point(x=self.x%other.width, y=self.y%other.height)
+
+    def squared_euclidean(self, other: Point):
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2
 
     def neighbours(self):
         yield Point(x=self.x-1, y=self.y-1)
@@ -63,6 +67,34 @@ class Point:
 Point.ORIGIN = Point(x=0, y=0)
 
 
+class Point3D:
+
+    ORIGIN: ClassVar[Point3D]
+
+    def __init__(self, *, x: int, y:int, z:int) -> None:
+        assert type(x) == int
+        assert type(y) == int
+        assert type(z) == int
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __str__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z})'
+
+    def __repr__(self) -> str:
+        return f'Point3D(x={self.x}, y={self.y}, z={self.z})'
+
+    def squared_euclidean(self, other: Point3D):
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2
+
+    x: int
+    y: int
+
+
+Point3D.ORIGIN = Point3D(x=0, y=0, z=0)
+
+
 @dataclass
 class Velocity:
 
@@ -72,13 +104,14 @@ class Velocity:
     dy: int
 
     def __init__(self, *, dx: int, dy: int) -> None:
-        assert type(dx) == int
-        assert type(dy) == int
         self.dx = dx
         self.dy = dy
 
     def __str__(self) -> str:
         return '{' + f'{self.dx}, {self.dy}' + '}'
+
+    def __repr__(self) -> str:
+        return f'Velocity(dx={self.dx}, dy={self.dy})'
 
     def clockwise90(self) -> Velocity:
         return Velocity(dx=-self.dy, dy=self.dx)
@@ -110,9 +143,6 @@ class Facing:
     dy: int
 
     def __init__(self, *, dx: int, dy: int) -> None:
-        assert type(dx) == int and -1 <= dx <= 1
-        assert type(dy) == int and -1 <= dy <= 1
-        assert not (dx == 0 and dy == 0)
         self.dx = dx
         self.dy = dy
 
@@ -127,6 +157,9 @@ class Facing:
 
     def __neg__(self) -> Facing:
         return Facing(dx=-self.dx, dy=-self.dy)
+
+    def __repr__(self):
+        return f'Facing(dx={self.dx}, dy={self.dy})'
 
     def __str__(self) -> str:
         if self.dx == -1:
