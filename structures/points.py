@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Any
 
 
 @dataclass
@@ -40,6 +40,14 @@ class Point:
 
     def __repr__(self) -> str:
         return f'Point(x={self.x}, y={self.y})'
+
+    def __hash__(self) -> int:
+        return hash(7 * hash(self.x) + hash(self.y))
+
+    def __eq__(self, other: Any) -> bool:
+        if type(other) != Point:
+            return False
+        return self.x == other.x and self.y == other.y
 
     def __add__(self, other: Velocity | Facing) -> Point:
         return Point(x=self.x+other.dx, y=self.y+other.dy)
@@ -84,6 +92,14 @@ class Point3D:
 
     def __repr__(self) -> str:
         return f'Point3D(x={self.x}, y={self.y}, z={self.z})'
+
+    def __hash__(self) -> int:
+        return hash(11 * hash(self.x) + 7 * hash(self.y) + hash(self.z))
+
+    def __eq__(self, other: Any) -> bool:
+        if type(other) != Point3D:
+            return False
+        return self.x == other.x and self.y == other.y and self.z == other.z
 
     def squared_euclidean(self, other: Point3D):
         return (self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2
