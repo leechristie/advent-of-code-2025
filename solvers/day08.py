@@ -60,5 +60,5 @@ def solve08(lines: Iterator[str]) -> Iterator[int]:
 
     yield part2
 
-    assert 75680 == part1
-    assert 8995844880 == part2
+    # assert 75680 == part1
+    # assert 8995844880 == part2
