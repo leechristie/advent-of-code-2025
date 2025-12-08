@@ -24,6 +24,29 @@ class UnionFind[T]:
     def to_sets(self) -> list[set[T]]:
         return self.sets
 
+
+# TODO: fix the fast version
+class IntUnionFind:
+    def __init__(self, num_ints: int) -> None:
+        self.sets = [{item} for item in range(num_ints)]
+    def union(self, x: int, y: int) -> bool:
+        ix = -1
+        iy = -1
+        for i, s in enumerate(self.sets):
+            if x in s:
+                ix = i
+            if y in s:
+                iy = i
+        if ix == iy:
+            return False
+        self.sets[ix].update(self.sets[iy])
+        del self.sets[iy]
+        return True
+    def __len__(self) -> int:
+        return len(self.sets)
+    def to_sets(self) -> list[set[int]]:
+        return self.sets
+
 #
 # class UnionFind[T]:
 #
