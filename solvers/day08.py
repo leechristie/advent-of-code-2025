@@ -3,9 +3,7 @@ from typing import Iterator
 
 import numpy as np
 
-from printing.debug import print
 from structures.algorithms import UnionFind
-
 from structures.points import Point3D
 
 
