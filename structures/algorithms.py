@@ -7,7 +7,7 @@ class UnionFind:
 
     def __init__(self, num_ints: int) -> None:
         self.parents: list[int] = list(range(num_ints))
-        self.sizes: int[int] = [1] * num_ints
+        self.sizes: list[int] = [1] * num_ints
         self.count: int = num_ints
 
     def find(self, item: int) -> int:
@@ -41,7 +41,7 @@ class UnionFind:
             rv[self.find(item)].add(item)
         return list(rv.values())
 
-    def set_sizes(self):
+    def set_sizes(self) -> list[int]:
         num_ints: int = len(self.parents)
         seen_roots: list[bool] = [False] * num_ints
         rv: list[int] = []

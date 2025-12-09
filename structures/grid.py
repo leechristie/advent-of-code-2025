@@ -243,13 +243,13 @@ class Grid:
                         queue.append((y, x+1))
         return area
 
-    def __draw_horizontal_ortholine(self, x1: int, x2: int, y: int, number: np.uint8) -> None:
+    def __draw_horizontal_ortholine(self, x1: int, x2: int, y: int, number: int) -> None:
         if x2 < x1:
             x1, x2 = x2, x1
         for x in range(x1, x2 + 1):
             self.cells[y, x] = number
 
-    def __draw_vertical_ortholine(self, x: int, y1: int, y2: int, number: np.uint8) -> None:
+    def __draw_vertical_ortholine(self, x: int, y1: int, y2: int, number: int) -> None:
         if y2 < y1:
             y1, y2 = y2, y1
         for y in range(y1, y2 + 1):
@@ -257,7 +257,7 @@ class Grid:
 
     def draw_ortholine(self, start: Point, end: Point, symbol: str) -> None:
         try:
-            number: np.int8 = np.int8(self.symbols.index(symbol))
+            number: int = self.symbols.index(symbol)
         except ValueError:
             raise AssertionError(f'unexpected symbol in flood fill: {symbol!r}')
         if start.x == end.x:
@@ -283,7 +283,7 @@ class Grid:
 
     def draw_ortholine_exclusive_no_overlap(self, start: Point, end: Point, symbol: str) -> None:
         try:
-            number: np.int8 = np.int8(self.symbols.index(symbol))
+            number: int = self.symbols.index(symbol)
         except ValueError:
             raise AssertionError(f'unexpected symbol in flood fill: {symbol!r}')
         if start.x == end.x:
