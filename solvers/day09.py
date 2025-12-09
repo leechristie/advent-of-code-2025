@@ -138,15 +138,6 @@ def walk_points_all_inside(grid: Grid, but_not_boundary_memo: Grid, points: list
     return True
 
 
-def draw_final_rect(dimensions: Dimensions, p1: Point, p2: Point) -> Grid:
-    rv: Grid = Grid.blank(dimensions, '?O')
-    for y in range(min((p1.y, p2.y)), max((p1.y, p2.y)) + 1):
-        for x in range(min((p1.x, p2.x)), max((p1.x, p2.x)) + 1):
-            p = Point(x=x, y=y)
-            rv[p] = 'O'
-    return rv
-
-
 def get_top_left_point(points: list[Point]) -> Point:
     min_x: int = -1
     for p in points:
