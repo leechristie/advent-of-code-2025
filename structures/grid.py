@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Iterable
 
 import numpy as np
@@ -18,6 +19,20 @@ class Grid:
         self.cells = cells
         self.dimensions = dimensions
         self.symbols = symbols
+
+    @staticmethod
+    def blank(dimensions: Dimensions, symbols: tuple[str, ...] | list[str] | str) -> Grid:
+        num_symbols: int = len(symbols)
+        assert (num_symbols >= 2), 'too few symbols'
+        assert (num_symbols <= 256), 'too many symbols'
+        assert (len(set(symbols)) == num_symbols), 'duplicate in symbols'
+        assert ('\n' not in symbols), 'symbols contains new line character'
+        if type(symbols) != tuple:
+            symbols = tuple(symbols)
+        assert type(symbols) == tuple
+        for symbol in symbols:
+            assert (type(symbol) == str and len(symbol) == 1), f'invalid symbol: {symbol!r}'
+        return Grid(np.zeros([dimensions.height, dimensions.width], dtype=np.uint8), dimensions, symbols)
 
     @staticmethod
     def parse(file: Iterator[str], symbols: tuple[str, ...] | list[str] | str, unique: str | None = None) -> tuple[Grid, Point | None]:
@@ -197,6 +212,60 @@ class Grid:
             raise AssertionError(f'unexpected symbol populating cells: {symbol!r}')
         for point in points:
             self.cells[point.y, point.x] = number
+
+    def flood_fill(self, start: Point, symbol: str) -> int:
+        try:
+            number: np.int8 = np.int8(self.symbols.index(symbol))
+        except ValueError:
+            raise AssertionError(f'unexpected symbol in flood fill: {symbol!r}')
+        current: np.int8 = np.int8(self.cells[start.y, start.x])
+        if current == number:
+            return 0
+        queue: deque[tuple[int, int]] = deque([(start.y, start.x)])
+        height, width = self.cells.shape
+        area: int = 0
+        while queue:
+            y, x = queue.popleft()
+            if self.cells[y, x] == current:
+                self.cells[y, x] = number
+                area += 1
+                if y - 1 >= 0:
+                    if self.cells[(y-1, x)] == current:
+                        queue.append((y-1, x))
+                if x - 1 >= 0:
+                    if self.cells[(y, x-1)] == current:
+                        queue.append((y, x-1))
+                if y + 1 < height:
+                    if self.cells[(y+1, x)] == current:
+                        queue.append((y+1, x))
+                if x + 1 < width:
+                    if self.cells[(y, x+1)] == current:
+                        queue.append((y, x+1))
+        return area
+
+    def __draw_horizontal_ortholine(self, x1: int, x2: int, y: int, number: np.uint8) -> None:
+        if x2 < x1:
+            x1, x2 = x2, x1
+        for x in range(x1, x2 + 1):
+            self.cells[y, x] = number
+
+    def __draw_vertical_ortholine(self, x: int, y1: int, y2: int, number: np.uint8) -> None:
+        if y2 < y1:
+            y1, y2 = y2, y1
+        for y in range(y1, y2 + 1):
+            self.cells[y, x] = number
+
+    def draw_ortholine(self, start: Point, end: Point, symbol: str) -> None:
+        try:
+            number: np.int8 = np.int8(self.symbols.index(symbol))
+        except ValueError:
+            raise AssertionError(f'unexpected symbol in flood fill: {symbol!r}')
+        if start.x == end.x:
+            self.__draw_vertical_ortholine(start.x, start.y, end.y, number)
+        elif start.y == end.y:
+            self.__draw_horizontal_ortholine(start.x, end.x, start.y, number)
+        else:
+            raise AssertionError('line is not ortholine')
 
 
 class FrozenGrid:

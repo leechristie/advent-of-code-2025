@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import ClassVar, Any
+from typing import ClassVar, Any, overload
 
 
 @dataclass
@@ -21,6 +21,9 @@ class Dimensions:
     def __contains__(self, point: Point) -> bool:
         assert type(point) == Point
         return point == point % self
+
+    def area(self) -> int:
+        return self.width * self.height
 
 
 @dataclass
@@ -52,8 +55,20 @@ class Point:
     def __add__(self, other: Velocity | Facing) -> Point:
         return Point(x=self.x+other.dx, y=self.y+other.dy)
 
+    @overload
     def __sub__(self, other: Point) -> Velocity:
-        return Velocity(dx=self.x-other.x, dy=self.y-other.y)
+        pass
+
+    @overload
+    def __sub__(self, other: Velocity) -> Point:
+        pass
+
+    def __sub__(self, other: Point | Velocity) -> Point | Velocity:
+        if type(other) == Point:
+            return Velocity(dx=self.x-other.x, dy=self.y-other.y)
+        else:
+            assert type(other) == Velocity
+            return Point(x=self.x - other.dx, y=self.y - other.dy)
 
     def __mod__(self, other: Dimensions) -> Point:
         return Point(x=self.x%other.width, y=self.y%other.height)
