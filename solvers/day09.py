@@ -46,7 +46,7 @@ def group_by_x_and_y(points: list[Point]) -> tuple[dict[int, list[int]], dict[in
     return x_to_ys, y_to_xs
 
 
-def create_grid(points: list[Point], padding:int = 0) -> tuple[Dimensions, Grid]:
+def create_grid(points: list[Point]) -> tuple[Dimensions, Grid]:
     dimensions = get_bounds(points)
     grid: Grid = Grid.blank(dimensions, ' X-v^')
     for point in points:
