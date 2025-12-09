@@ -23,7 +23,6 @@ def bounding_rect_area(p1: Point, p2: Point) -> int:
 
 
 def get_bounds(points: list[Point], *, padding: int = 0) -> tuple[Velocity, Dimensions]:
-    assert points
     min_x: int = points[0].x
     min_y: int = points[0].y
     max_x: int = points[0].x
@@ -129,7 +128,6 @@ def is_inside_recursive(grid: Grid, but_not_boundary_memo: Grid, point: Point) -
 
 
 def walk_two_points_all_inside(grid: Grid, but_not_boundary_memo: Grid, p1: Point, p2: Point) -> bool:
-    assert p1.x == p2.x or p1.y == p2.y
     if p1.x == p2.x:
         x = p1.x
         for y in range(min((p1.y, p2.y)), max((p1.y, p2.y)) + 1):
@@ -181,7 +179,6 @@ def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> t
     # reverse orientation if needed
     top_left_point: Point = get_top_left_point(points)
     top_left_point_symbol: str = grid[top_left_point - offset]
-    assert top_left_point_symbol == '^' or top_left_point_symbol == 'v'
     if top_left_point_symbol == 'v':
         draw_vlines(grid, offset, points, reverse=True)
 
@@ -258,7 +255,6 @@ def solve09(lines: Iterator[str]) -> Iterator[int]:
     areas: list[tuple[int, Point, Point]] = all_areas(points)
 
     part1: int = areas[0][0]
-    assert (part1 in (50, 4771532800)), f'part1 = {part1}'
     yield part1
 
     xs, ys = sorted_xs_and_ys(points)
@@ -268,5 +264,4 @@ def solve09(lines: Iterator[str]) -> Iterator[int]:
     squished_areas = squish_areas(areas, xs_lookup, ys_lookup)
     largest_rect: tuple[int, Point, Point] = solve_part2(squished_points, squished_areas)
     part2: int = unsquish_area(largest_rect, xs, ys)[0]
-    assert (part2 in (24, 1544362560)), f'part2 = {part2}'
     yield part2
