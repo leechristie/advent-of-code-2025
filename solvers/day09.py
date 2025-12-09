@@ -1,3 +1,4 @@
+import sys
 import time
 from typing import Iterator
 
@@ -5,7 +6,7 @@ from collections import defaultdict
 
 import tqdm
 
-from printing.color import ASCII_CYAN, color_print
+from printing.color import *
 from printing.debug import print
 
 from structures.grid import Grid
@@ -63,23 +64,27 @@ def group_by_x_and_y(points: list[Point]) -> tuple[dict[int, list[int]], dict[in
     return x_to_ys, y_to_xs
 
 
-def create_grid(points: list[Point]) -> tuple[Velocity, Dimensions, Grid]:
-    offset, dimensions = get_bounds(points, padding=1)
-    grid: Grid = Grid.blank(dimensions, '.X# iv^')
+def create_grid(points: list[Point], padding:int = 0) -> tuple[Velocity, Dimensions, Grid]:
+    offset, dimensions = get_bounds(points, padding=padding)
+    grid: Grid = Grid.blank(dimensions, ' X-v^ioO')
     for point in points:
         grid[point - offset] = 'X'
     return offset, dimensions, grid
 
 
 def draw_lines(grid: Grid, offset: Velocity, points: list[Point]) -> None:
+
     for p1, p2 in zip(points, [points[-1]] + points[:-1]):
-        grid.draw_ortholine(p1 - offset, p2 - offset, '#')
+        grid.draw_ortholine_exclusive_no_overlap(p1 - offset, p2 - offset, '-')
+
+
+def draw_vlines(grid: Grid, offset: Velocity, points: list[Point], reverse:bool = False):
     for p1, p2 in zip(points, [points[-1]] + points[:-1]):
         if p1.x == p2.x:
             if p1.y > p2.y:
-                grid.draw_ortholine(p1 - offset, p2 - offset, '^')
+                grid.draw_ortholine(p1 - offset, p2 - offset, '^' if reverse else 'v')
             else:
-                grid.draw_ortholine(p1 - offset, p2 - offset, 'v')
+                grid.draw_ortholine(p1 - offset, p2 - offset, 'v' if reverse else '^')
 
 
 def flood_fill(grid: Grid) -> None:
@@ -89,6 +94,17 @@ def flood_fill(grid: Grid) -> None:
 def debug_print_example_grid(grid: Grid) -> None:
     if grid.dimensions.height < 100:
         print(grid, end='\n\n')
+
+
+def debug_print_example_grid_overlay(grid: Grid, but_not_boundary_memo: Grid) -> None:
+    if grid.dimensions.height < 100:
+        copy = grid.copy()
+        for y in range(grid.dimensions.height):
+            for x in range(grid.dimensions.width):
+                p = Point(x=x, y=y)
+                if but_not_boundary_memo[p] != '?':
+                    copy[p] = but_not_boundary_memo[p]
+        print(copy, end='\n\n')
 
 
 __start: float = 0
@@ -101,65 +117,108 @@ def timer(message: str | None = None):
     __start = now
 
 
-def iter_four_corners(areas: list[tuple[int, Point, Point]]) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
+def iter_four_corners(areas: list[tuple[int, Point, Point]], offset: Velocity) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
     for a, p1, p2 in areas:
         p3 = Point(x=p1.x, y=p2.y)
         p4 = Point(x=p2.x, y=p1.y)
-        yield a, (p1, p2), (p3, p4)
+        yield a, (p1 - offset, p2 - offset), (p3 - offset, p4 - offset)
 
 
-def is_inside(grid: Grid, point: Point) -> bool:
-    if grid[point] == '#' or grid[point] == '^' or grid[point] == 'v':
+def iter_four_corners_each_inside(grid: Grid, but_not_boundary_memo: Grid, areas: list[tuple[int, Point, Point]], offset: Velocity) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
+    num_walk: int = 0
+    with tqdm.tqdm(list(iter_four_corners(areas, offset)), desc='none walked yet') as progress:
+        for a, (p1, p2), (p3, p4) in progress:
+            if is_inside_recursive(grid, but_not_boundary_memo, p3) and is_inside_recursive(grid, but_not_boundary_memo, p4):
+                num_walk += 1
+                progress.set_description(f'number sent to be walked: {num_walk}')
+                yield a, (p1, p2), (p3, p4)
+
+
+def __is_inside_but_not_boundary_recursive(grid: Grid, but_not_boundary_memo: Grid, point: Point) -> bool:
+
+    if but_not_boundary_memo[point]:
+
+        # right is off the grid, so we are outside
+        if point.x + 1 >= grid.dimensions.width:
+            but_not_boundary_memo[point] = 'o'
+            return False
+
+        right: Point = Point(x=point.x + 1, y=point.y)
+        if grid[right] == 'v':  # ASSUME GRID IS CLOCKWISE
+            but_not_boundary_memo[point] = 'i'
+            return True
+
+        if grid[right] == '^':  # ASSUME GRID IS CLOCKWISE
+            but_not_boundary_memo[point] = 'o'
+            return False
+
+        if __is_inside_but_not_boundary_recursive(grid, but_not_boundary_memo, right):
+            but_not_boundary_memo[point] = 'i'
+            return True
+        else:
+            but_not_boundary_memo[point] = 'o'
+            return False
+
+    else:
+        return but_not_boundary_memo[point] == 'i'
+
+
+def is_inside_recursive(grid: Grid, but_not_boundary_memo: Grid, point: Point) -> bool:
+    if grid[point] != ' ':
         return True
-    step: Velocity = Velocity(dx=1, dy=0)
-    # point += step
-    blocks: list[str] = []
-    block: str = ''
-    while point in grid.dimensions:
-
-        if grid[point] == '^':
-            if block:
-                block += '^'
-                blocks.append(block)
-                block = ''
-            else:
-                block = '^'
-
-        elif grid[point] == 'v':
-            if block:
-                block += 'v'
-                blocks.append(block)
-                block = ''
-            else:
-                block = 'v'
-
-        elif grid[point] == '#':
-            assert block, point
-            if block.endswith('v') or block.endswith('^'):
-                block += '#'
-
-        else:
-            if block:
-                blocks.append(block)
-                block = ''
-
-        point += step
-    assert (not block), point
-    inside: bool = False
-    for block in blocks:
-        if len(block) == 1:
-            inside = not inside
-        else:
-            first, last = block[0], block[-1]
-            if first == last:
-                inside = not inside
-    return inside
+    return __is_inside_but_not_boundary_recursive(grid, but_not_boundary_memo, point)
 
 
-def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> int:
+def walk_two_points_all_inside(grid: Grid, but_not_boundary_memo: Grid, p1: Point, p2: Point) -> bool:
+    assert p1.x == p2.x or p1.y == p2.y
+    if p1.x == p2.x:
+        x = p1.x
+        for y in range(min((p1.y, p2.y)), max((p1.y, p2.y)) + 1):
+            if not is_inside_recursive(grid, but_not_boundary_memo, Point(x=x, y=y)):
+                return False
+    else:
+        y = p1.y
+        for x in range(min((p1.x, p2.x)), max((p1.x, p2.x)) + 1):
+            if not is_inside_recursive(grid, but_not_boundary_memo, Point(x=x, y=y)):
+                return False
+    return True
+
+
+def walk_points_all_inside(grid: Grid, but_not_boundary_memo: Grid, points: list[Point]) -> bool:
+    for p1, p2 in zip(points, [points[-1]] + points[:-1]):
+        if not walk_two_points_all_inside(grid, but_not_boundary_memo, p1, p2):
+            return False
+    return True
+
+
+def draw_final_rect(dimensions: Dimensions, p1: Point, p2: Point) -> Grid:
+    rv: Grid = Grid.blank(dimensions, '?O')
+    for y in range(min((p1.y, p2.y)), max((p1.y, p2.y)) + 1):
+        for x in range(min((p1.x, p2.x)), max((p1.x, p2.x)) + 1):
+            p = Point(x=x, y=y)
+            rv[p] = 'O'
+    return rv
+
+
+def get_top_left_point(points: list[Point]) -> Point:
+    min_x: int = -1
+    for p in points:
+        if min_x == -1 or p.x < min_x:
+            min_x = p.x
+    min_y: int = -1
+    for p in points:
+        if p.x == min_x:
+            if min_y == -1 or p.y < min_y:
+               min_y = p.y
+    return Point(x=min_x, y=min_y)
+
+
+def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> tuple[int, Point, Point]:
+
+    sys.setrecursionlimit(10_000_000)
 
     timer()
-    offset, dimensions, grid = create_grid(points)
+    offset, dimensions, grid = create_grid(points, padding=3)
     timer('created grid of red tiles')
     debug_print_example_grid(grid)
     timer()
@@ -169,25 +228,35 @@ def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> i
     debug_print_example_grid(grid)
     timer()
 
-    if grid.dimensions.height < 100:
-        copy: Grid = grid.copy()
-        for y in range(dimensions.height):
-            for x in range(dimensions.width):
-                p: Point = Point(x=x, y=y)
-                if is_inside(grid, p):
-                    copy[p] = 'i'
-        timer('debug filling inside')
-        debug_print_example_grid(copy)
+    draw_vlines(grid, offset, points)
+    timer('drawn vlines of green tiles edges')
+    debug_print_example_grid(grid)
+    timer()
+
+    top_left_point: Point = get_top_left_point(points)
+    top_left_point_symbol: str = grid[top_left_point - offset]
+    print(f'top left point is {top_left_point_symbol}')
+    timer('checked direction of loop')
+
+    assert top_left_point_symbol == '^' or top_left_point_symbol == 'v'
+    if top_left_point_symbol == 'v':
+        print('REVERSING DIRECTION')
+        draw_vlines(grid, offset, points, reverse=True)
+        timer('drawn vlines of green tiles edges backwards')
+        debug_print_example_grid(grid)
         timer()
 
-    for a, (p1, p2), (p3, p4) in tqdm.tqdm(list(iter_four_corners(areas))):
-        assert is_inside(grid, p1 - offset)
-        assert is_inside(grid, p1 - offset)
-        if is_inside(grid, p3 - offset) and is_inside(grid, p4 - offset):
+    but_not_boundary_memo = Grid.blank(grid.dimensions, symbols='?oi')
+    print('begin slow part . . .')
+    for a, (p1, p2), (p3, p4) in iter_four_corners_each_inside(grid, but_not_boundary_memo, areas, offset):
+        if walk_points_all_inside(grid, but_not_boundary_memo, [p1, p3, p2, p4]):
             timer('looped over all sets of potential 4 corners')
-            return a
-    raise ValueError('ran out of sets of 4 corners to check')
+            debug_print_example_grid_overlay(grid, but_not_boundary_memo)
+            final = draw_final_rect(grid.dimensions, p1, p2)
+            debug_print_example_grid_overlay(grid, final)
+            return a, p1 + offset, p2 + offset
 
+    raise AssertionError('did not find good candidate')
 
 
 def all_areas(points: list[Point]) -> list[tuple[int, Point, Point]]:
@@ -200,14 +269,71 @@ def all_areas(points: list[Point]) -> list[tuple[int, Point, Point]]:
     return rv
 
 
+def sorted_xs_and_ys(points: list[Point]) -> tuple[list[int], list[int]]:
+    xs: set[int] = set()
+    ys: set[int] = set()
+    for point in points:
+        xs.add(point.x)
+        ys.add(point.y)
+    return sorted(xs), sorted(ys)
+
+
+def unsquish_point(point: Point, xs: list[int], ys:list[int]) -> Point:
+    return Point(x=xs[point.x], y=ys[point.y])
+
+
+def unsquish_area(rect: tuple[int, Point, Point], xs: list[int], ys:list[int]) -> tuple[int, Point, Point]:
+    a, p1, p2 = rect
+    p1, p2 = unsquish_point(p1, xs, ys), unsquish_point(p2, xs, ys)
+    return a, p1, p2
+
+
+def to_reverse_dict(values: list[int]) -> dict[int, int]:
+    rv: dict[int, int] = {}
+    for index, value in enumerate(values):
+        rv[value] = index
+    return rv
+
+
+def squish_point(point: Point, xs_lookup: dict[int, int], ys_lookup: dict[int, int]) -> Point:
+    return Point(x=xs_lookup[point.x], y=ys_lookup[point.y], squished=True)
+
+
+def squish_points(points: list[Point], xs_lookup: dict[int, int], ys_lookup: dict[int, int]) -> list[Point]:
+    rv: list[Point] = []
+    for point in points:
+        rv.append(squish_point(point, xs_lookup, ys_lookup))
+    return rv
+
+
+def squish_area(area: tuple[int, Point, Point], xs_lookup: dict[int, int], ys_lookup: dict[int, int]) -> tuple[int, Point, Point]:
+    a, p1, p2 = area
+    p1, p2 = squish_point(p1, xs_lookup, ys_lookup), squish_point(p2, xs_lookup, ys_lookup)
+    return a, p1, p2
+
+
+def squish_areas(areas: list[tuple[int, Point, Point]], xs_lookup: dict[int, int], ys_lookup: dict[int, int]) -> list[tuple[int, Point, Point]]:
+    rv: list[tuple[int, Point, Point]] = []
+    for area in areas:
+        rv.append(squish_area(area, xs_lookup, ys_lookup))
+    return rv
+
+
 def solve09(lines: Iterator[str]) -> Iterator[int]:
 
     points: list[Point] = parse_points(lines)
     areas: list[tuple[int, Point, Point]] = all_areas(points)
 
     part1: int = areas[0][0]
-    assert (part1 in (50, 4771532800)), f'part1 = {part1}'
+    assert (part1 in (12,  50, 81, 4771532800)), f'part1 = {part1}'
     yield part1
 
-    part2: int = solve_part2(points, areas)
+    xs, ys = sorted_xs_and_ys(points)
+    xs_lookup: dict[int, int] = to_reverse_dict(xs)
+    ys_lookup: dict[int, int] = to_reverse_dict(ys)
+    squished_points: list[Point] = squish_points(points, xs_lookup, ys_lookup)
+    squished_areas = squish_areas(areas, xs_lookup, ys_lookup)
+    largest_rect: tuple[int, Point, Point] = solve_part2(squished_points, squished_areas)
+    part2: int = unsquish_area(largest_rect, xs, ys)[0]
+    assert (part2 < 4652231070), "That's not the right answer; your answer is too high."
     yield part2

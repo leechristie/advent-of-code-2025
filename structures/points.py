@@ -33,10 +33,12 @@ class Point:
 
     x: int
     y: int
+    squished: bool
 
-    def __init__(self, *, x: int, y:int) -> None:
+    def __init__(self, *, x: int, y:int, squished:bool=False) -> None:
         self.x = x
         self.y = y
+        self.squished = squished
 
     def __str__(self) -> str:
         return f'({self.x}, {self.y})'

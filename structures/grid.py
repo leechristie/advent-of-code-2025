@@ -267,6 +267,32 @@ class Grid:
         else:
             raise AssertionError('line is not ortholine')
 
+    def __draw_horizontal_ortholine_exclusive_no_overlap(self, x1: int, x2: int, y: int, number: np.uint8) -> None:
+        if x2 < x1:
+            x1, x2 = x2, x1
+        for x in range(x1 + 1, x2):
+            assert self.cells[y, x] != number
+            self.cells[y, x] = number
+
+    def __draw_vertical_ortholine_exclusive_no_overlap(self, x: int, y1: int, y2: int, number: np.uint8) -> None:
+        if y2 < y1:
+            y1, y2 = y2, y1
+        for y in range(y1 + 1, y2):
+            assert self.cells[y, x] != number
+            self.cells[y, x] = number
+
+    def draw_ortholine_exclusive_no_overlap(self, start: Point, end: Point, symbol: str) -> None:
+        try:
+            number: np.int8 = np.int8(self.symbols.index(symbol))
+        except ValueError:
+            raise AssertionError(f'unexpected symbol in flood fill: {symbol!r}')
+        if start.x == end.x:
+            self.__draw_vertical_ortholine(start.x, start.y, end.y, number)
+        elif start.y == end.y:
+            self.__draw_horizontal_ortholine(start.x, end.x, start.y, number)
+        else:
+            raise AssertionError('line is not ortholine')
+
 
 class FrozenGrid:
 
