@@ -3,7 +3,7 @@ from typing import Iterator
 from collections import defaultdict
 
 from structures.grid import Grid
-from structures.points import Point, Dimensions, Velocity
+from structures.points import Point, Dimensions
 
 __all__ = ['solve09']
 
@@ -22,27 +22,17 @@ def bounding_rect_area(p1: Point, p2: Point) -> int:
     return dx * dy
 
 
-def get_bounds(points: list[Point], *, padding: int = 0) -> tuple[Velocity, Dimensions]:
-    min_x: int = points[0].x
-    min_y: int = points[0].y
+def get_bounds(points: list[Point]) -> Dimensions:
     max_x: int = points[0].x
     max_y: int = points[0].y
     for point in points[1:]:
-        if point.x < min_x:
-            min_x = point.x
         if point.x > max_x:
             max_x = point.x
-        if point.y < min_y:
-            min_y = point.y
         if point.y > max_y:
             max_y = point.y
-    min_x -= padding
-    min_y -= padding
-    max_x += padding
-    max_y += padding
-    width: int = max_x - min_x + 1
-    height: int = max_y - min_y + 1
-    return Velocity(dx=min_x, dy=min_y), Dimensions(width=width, height=height)
+    width: int = max_x + 1
+    height: int = max_y + 1
+    return Dimensions(width=width, height=height)
 
 
 def group_by_x_and_y(points: list[Point]) -> tuple[dict[int, list[int]], dict[int, list[int]]]:
@@ -56,38 +46,38 @@ def group_by_x_and_y(points: list[Point]) -> tuple[dict[int, list[int]], dict[in
     return x_to_ys, y_to_xs
 
 
-def create_grid(points: list[Point], padding:int = 0) -> tuple[Velocity, Dimensions, Grid]:
-    offset, dimensions = get_bounds(points, padding=padding)
-    grid: Grid = Grid.blank(dimensions, ' X-v^ioO')
+def create_grid(points: list[Point], padding:int = 0) -> tuple[Dimensions, Grid]:
+    dimensions = get_bounds(points)
+    grid: Grid = Grid.blank(dimensions, ' X-v^')
     for point in points:
-        grid[point - offset] = 'X'
-    return offset, dimensions, grid
+        grid[point] = 'X'
+    return dimensions, grid
 
 
-def draw_lines(grid: Grid, offset: Velocity, points: list[Point]) -> None:
+def draw_lines(grid: Grid, points: list[Point]) -> None:
 
     for p1, p2 in zip(points, [points[-1]] + points[:-1]):
-        grid.draw_ortholine_exclusive_no_overlap(p1 - offset, p2 - offset, '-')
+        grid.draw_ortholine_exclusive_no_overlap(p1, p2, '-')
 
 
-def draw_vlines(grid: Grid, offset: Velocity, points: list[Point], reverse:bool = False):
+def draw_vlines(grid: Grid, points: list[Point], reverse:bool = False):
     for p1, p2 in zip(points, [points[-1]] + points[:-1]):
         if p1.x == p2.x:
             if p1.y > p2.y:
-                grid.draw_ortholine(p1 - offset, p2 - offset, '^' if reverse else 'v')
+                grid.draw_ortholine(p1, p2, '^' if reverse else 'v')
             else:
-                grid.draw_ortholine(p1 - offset, p2 - offset, 'v' if reverse else '^')
+                grid.draw_ortholine(p1, p2, 'v' if reverse else '^')
 
 
-def iter_four_corners(areas: list[tuple[int, Point, Point]], offset: Velocity) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
+def iter_four_corners(areas: list[tuple[int, Point, Point]]) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
     for a, p1, p2 in areas:
         p3 = Point(x=p1.x, y=p2.y)
         p4 = Point(x=p2.x, y=p1.y)
-        yield a, (p1 - offset, p2 - offset), (p3 - offset, p4 - offset)
+        yield a, (p1, p2), (p3, p4)
 
 
-def iter_four_corners_each_inside(grid: Grid, but_not_boundary_memo: Grid, areas: list[tuple[int, Point, Point]], offset: Velocity) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
-    for a, (p1, p2), (p3, p4) in iter_four_corners(areas, offset):
+def iter_four_corners_each_inside(grid: Grid, but_not_boundary_memo: Grid, areas: list[tuple[int, Point, Point]]) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
+    for a, (p1, p2), (p3, p4) in iter_four_corners(areas):
         if is_inside_recursive(grid, but_not_boundary_memo, p3) and is_inside_recursive(grid, but_not_boundary_memo, p4):
             yield a, (p1, p2), (p3, p4)
 
@@ -172,20 +162,20 @@ def get_top_left_point(points: list[Point]) -> Point:
 
 def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> tuple[int, Point, Point]:
 
-    offset, dimensions, grid = create_grid(points, padding=3)
-    draw_lines(grid, offset, points)
-    draw_vlines(grid, offset, points)
+    dimensions, grid = create_grid(points)
+    draw_lines(grid, points)
+    draw_vlines(grid, points)
 
     # reverse orientation if needed
     top_left_point: Point = get_top_left_point(points)
-    top_left_point_symbol: str = grid[top_left_point - offset]
+    top_left_point_symbol: str = grid[top_left_point]
     if top_left_point_symbol == 'v':
-        draw_vlines(grid, offset, points, reverse=True)
+        draw_vlines(grid, points, reverse=True)
 
     but_not_boundary_memo = Grid.blank(grid.dimensions, symbols='?oi')
-    for a, (p1, p2), (p3, p4) in iter_four_corners_each_inside(grid, but_not_boundary_memo, areas, offset):
+    for a, (p1, p2), (p3, p4) in iter_four_corners_each_inside(grid, but_not_boundary_memo, areas):
         if walk_points_all_inside(grid, but_not_boundary_memo, [p1, p3, p2, p4]):
-            return a, p1 + offset, p2 + offset
+            return a, p1, p2
     raise AssertionError('did not find solution to Part 2')
 
 
@@ -255,6 +245,7 @@ def solve09(lines: Iterator[str]) -> Iterator[int]:
     areas: list[tuple[int, Point, Point]] = all_areas(points)
 
     part1: int = areas[0][0]
+    assert 4771532800 == part1
     yield part1
 
     xs, ys = sorted_xs_and_ys(points)
@@ -264,4 +255,5 @@ def solve09(lines: Iterator[str]) -> Iterator[int]:
     squished_areas = squish_areas(areas, xs_lookup, ys_lookup)
     largest_rect: tuple[int, Point, Point] = solve_part2(squished_points, squished_areas)
     part2: int = unsquish_area(largest_rect, xs, ys)[0]
+    assert 1544362560 == part2
     yield part2
