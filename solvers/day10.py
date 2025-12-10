@@ -1,6 +1,10 @@
 import itertools
 import time
+from collections.abc import Callable
 from typing import Iterator
+from structures.astar import a_star
+
+from printing.color import ASCII_PURPLE, color_print
 from printing.debug import print
 
 __all__ = ['solve10']
@@ -48,7 +52,7 @@ def fewest_presses(required_lights: list[bool], buttons: list[tuple[int, ...]]) 
     raise AssertionError
 
 
-def can_press(goal: list[int], button: tuple[int, ...]) -> bool:
+def can_press(goal: list[int] | tuple[int, ...], button: tuple[int, ...]) -> bool:
     for i in button:
         if goal[i] == 0:
             return False
@@ -64,6 +68,12 @@ def unpress_button(goal: list[int], button: tuple[int, ...]) -> None:
     for i in button:
         goal[i] += 1
 
+
+def with_button_pressed(goal: list[int] | tuple[int, ...], button: tuple[int, ...]) -> tuple[int, ...]:
+    rv: list[int] = list(goal)
+    for i in button:
+        rv[i] -= 1
+    return tuple(rv)
 
 
 NO_SOLUTION: int = -1
@@ -98,6 +108,23 @@ def fewest_presses_for_joltage(required_joltage: list[int], buttons: list[tuple[
     return __fewest_presses_for_joltage()
 
 
+type Joltages = tuple[int, ...]
+
+def fewest_presses_for_joltage_by_a_star(required_joltage: list[int], buttons: list[tuple[int, ...]]) -> int:
+
+    start: Joltages = tuple(required_joltage)
+    goal: Callable[[Joltages], bool] = lambda x: sum(x) == 0
+    heuristic: Callable[[Joltages], int] = max
+    def neighbours(joltages: Joltages) -> list[tuple[Joltages, int]]:
+        rv: list[tuple[Joltages, int]] = []
+        for button in buttons:
+            if can_press(joltages, button):
+                rv.append((with_button_pressed(joltages, button), 1))
+        return rv
+    result: list[Joltages] | None = a_star(start, goal, heuristic, neighbours)
+    return len(result) - 1
+
+
 def solve10(lines: Iterator[str]) -> Iterator[int]:
 
     part1: int = 0
@@ -118,10 +145,14 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         print('   ', required_joltage)
         print('    start :', time.strftime('%X %x %Z'))
         start: float = time.perf_counter()
-        current = fewest_presses_for_joltage(required_joltage, buttons)
+        by_a_star: int = fewest_presses_for_joltage_by_a_star(required_joltage, buttons)
+        # current: int = fewest_presses_for_joltage(required_joltage, buttons)
         taken: float = time.perf_counter() - start
         print(f'    took : {taken / 60:.1f} minutes')
-        print(f'    answer: {current}')
-        part2 += current
+        print(f'    answer: {by_a_star}')
+        # if by_a_star != current:
+        #     color_print(f'True Value = {current}\nA* Result = {by_a_star}', color=ASCII_PURPLE)
+        print()
+        part2 += by_a_star
 
     yield part2
