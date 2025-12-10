@@ -1,7 +1,7 @@
 import itertools
 import time
 from collections.abc import Callable
-from typing import Iterator
+from typing import Iterator, Any
 from structures.astar import a_star
 
 from printing.color import ASCII_PURPLE, color_print
@@ -123,8 +123,8 @@ def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: 
     return len(result) - 1
 
 
-def possible_ranges(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> list[tuple[int, int]]:
-    rv: list[list[int]] = [[0, max(required_joltages)] for _ in range(len(buttons))]
+def possible_ranges(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> list[tuple[int, int, set[int]]]:
+    rv: list[list[Any]] = [[0, max(required_joltages), set()] for _ in range(len(buttons))]
     for index, required_joltage in enumerate(required_joltages):
         supported_button_ids: list[int] = []
         for button_id, button in enumerate(buttons):
@@ -141,11 +141,11 @@ def possible_ranges(required_joltages: list[int], buttons: list[tuple[int, ...]]
         else:
             max_press_count: int = required_joltage
             for button_id in supported_button_ids:
+                rv[button_id][2].update(set(supported_button_ids) - {button_id})
                 if rv[button_id][1] > max_press_count:
                     rv[button_id][1] = max_press_count
                     assert rv[button_id][0] <= rv[button_id][1]
-
-    return [(minimum, maximum) for minimum, maximum in rv]
+    return [(minimum, maximum, friends) for minimum, maximum, friends in rv]
 
         
 def solve10(lines: Iterator[str]) -> Iterator[int]:
@@ -163,18 +163,18 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
     
     for i, (required_lights, buttons, required_joltages) in enumerate(machines, start=1):
         print(f'solving machine {i} of {len(machines)} . . .')
-        print('   ', required_lights)
-        print('   ', buttons)
-        print('   ', required_joltages)
-        print('    start :', time.strftime('%X %x %Z'))
+        print(' ', required_lights)
+        print(' ', buttons)
+        print(' ', required_joltages)
+        print('  start :', time.strftime('%X %x %Z'))
         start: float = time.perf_counter()
         #current: int = fewest_presses_for_joltage_memoized(required_joltages, buttons)
-        for button, (minimum, maximum) in zip(buttons, possible_ranges(required_joltages, buttons)):
-            print(f'        button {button} to be pressed {minimum} to {maximum} times')
+        for button_id, (minimum, maximum, friend_buttons) in enumerate(possible_ranges(required_joltages, buttons)):
+            print(f'    #{button_id} to be {minimum} to {maximum} times, affects {friend_buttons}')
         current: int = fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
         taken: float = time.perf_counter() - start
-        print(f'    took : {taken / 60:.1f} minutes')
-        print(f'    answer: {current}')
+        print(f'  took : {taken / 60:.1f} minutes')
+        print(f'  answer: {current}')
         print()
         part2 += current
 
