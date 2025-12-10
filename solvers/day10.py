@@ -79,7 +79,7 @@ def with_button_pressed(goal: list[int] | tuple[int, ...], button: tuple[int, ..
 NO_SOLUTION: int = -1
 
 
-def fewest_presses_for_joltage(required_joltage: list[int], buttons: list[tuple[int, ...]]) -> int:
+def fewest_presses_for_joltage_memoized(required_joltage: list[int], buttons: list[tuple[int, ...]]) -> int:
     memo: dict[tuple[int, ...], int] = {}
     def __fewest_presses_for_joltage() -> int | None:
         t: tuple[int, ...] = tuple(required_joltage)
@@ -108,20 +108,18 @@ def fewest_presses_for_joltage(required_joltage: list[int], buttons: list[tuple[
     return __fewest_presses_for_joltage()
 
 
-type Joltages = tuple[int, ...]
-
 def fewest_presses_for_joltage_by_a_star(required_joltage: list[int], buttons: list[tuple[int, ...]]) -> int:
 
-    start: Joltages = tuple(required_joltage)
-    goal: Callable[[Joltages], bool] = lambda x: sum(x) == 0
-    heuristic: Callable[[Joltages], int] = max
-    def neighbours(joltages: Joltages) -> list[tuple[Joltages, int]]:
-        rv: list[tuple[Joltages, int]] = []
+    start: tuple[int, ...] = tuple(required_joltage)
+    goal: Callable[[tuple[int, ...]], bool] = lambda x: sum(x) == 0
+    heuristic: Callable[[tuple[int, ...]], int] = max
+    def neighbours(joltages: tuple[int, ...]) -> list[tuple[tuple[int, ...], int]]:
+        rv: list[tuple[tuple[int, ...], int]] = []
         for button in buttons:
             if can_press(joltages, button):
                 rv.append((with_button_pressed(joltages, button), 1))
         return rv
-    result: list[Joltages] | None = a_star(start, goal, heuristic, neighbours)
+    result: list[tuple[int, ...]] | None = a_star(start, goal, heuristic, neighbours)
     return len(result) - 1
 
 
@@ -145,14 +143,14 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         print('   ', required_joltage)
         print('    start :', time.strftime('%X %x %Z'))
         start: float = time.perf_counter()
-        by_a_star: int = fewest_presses_for_joltage_by_a_star(required_joltage, buttons)
-        # current: int = fewest_presses_for_joltage(required_joltage, buttons)
+        #current: int = fewest_presses_for_joltage_memoized(required_joltage, buttons)
+        current: int = fewest_presses_for_joltage_by_a_star(required_joltage, buttons)
         taken: float = time.perf_counter() - start
         print(f'    took : {taken / 60:.1f} minutes')
-        print(f'    answer: {by_a_star}')
-        # if by_a_star != current:
-        #     color_print(f'True Value = {current}\nA* Result = {by_a_star}', color=ASCII_PURPLE)
+        print(f'    answer: {current}')
         print()
-        part2 += by_a_star
+        part2 += current
 
+    if 7 == part1:
+        assert 33 == part2
     yield part2
