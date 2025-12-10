@@ -1,4 +1,5 @@
 import itertools
+import time
 from typing import Iterator
 from printing.debug import print
 
@@ -115,6 +116,12 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         print('   ', required_lights)
         print('   ', buttons)
         print('   ', required_joltage)
-        part2 += fewest_presses_for_joltage(required_joltage, buttons)
+        print('    start :', time.strftime('%X %x %Z'))
+        start: float = time.perf_counter()
+        current = fewest_presses_for_joltage(required_joltage, buttons)
+        taken: float = time.perf_counter() - start
+        print(f'    took : {taken / 60:.1f} minutes')
+        print(f'    answer: {current}')
+        part2 += current
 
     yield part2
