@@ -9,6 +9,7 @@ from .day06 import *
 from .day07 import *
 from .day08 import *
 from .day09 import *
+from .day10 import *
 
 __all__ = ['SOLVER_LIST', 'SolverType']
 
@@ -23,5 +24,6 @@ SOLVER_LIST: dict[int, tuple[str, SolverType]] = {
     6: ('Trash Compactor', solve06),
     7: ('Laboratories', solve07),
     8: ('Playground', solve08),
-    9: ('Movie Theater', solve09)
+    9: ('Movie Theater', solve09),
+    10: ('Factory', solve10)
 }
