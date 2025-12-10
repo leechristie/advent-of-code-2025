@@ -47,15 +47,22 @@ def fewest_presses(required_lights: list[bool], buttons: list[set[int]]) -> int:
     raise AssertionError
 
 
+def fewest_presses_for_joltage(required_joltage: list[int], buttons: list[set[int]]) -> int:
+    return 0  # TODO
+
+
 def solve10(lines: Iterator[str]) -> Iterator[int]:
 
     part1: int = 0
+    part2: int = 0
 
     required_lights: list[bool]
     buttons: list[set[int]]
     required_joltage: list[int]
     for required_lights, buttons, required_joltage in parse_machines(lines):
         part1 += fewest_presses(required_lights, buttons)
+        part2 += fewest_presses_for_joltage(required_joltage, buttons)
 
+    assert (part1 in (7, 494)), f'part1 = {part1}'
     yield part1
-    yield 0
+    yield part2
