@@ -130,7 +130,10 @@ def reconstruct_path[T](came_from: dict[T, T],
 def a_star[T](start: T,
               goal: Callable[[T], bool],
               heuristic: Callable[[T], int],
-              neighbours: Callable[[T], list[tuple[T, int]]]) -> Optional[list[T]]:
+              neighbours: Callable[[T], list[tuple[T, int]]]
+              ,visit_limit: int | None = None  # DEBUGGING
+              ) -> Optional[list[T]]:
+    visits: int = 0  # DEBUGGING
     open_set: BinaryMinHeap[T] = BinaryMinHeap()
     open_set.insert(start, heuristic(start))
     came_from: dict[T, T] = {}
@@ -140,7 +143,11 @@ def a_star[T](start: T,
     f_score[start] = heuristic(start)
     while not open_set.empty():
         current: T = open_set.pop_min()
+        visits += 1  # DEBUGGING
+        if visit_limit is not None and visits > visit_limit:  # DEBUGGING
+            raise StopIteration  # DEBUGGING
         if goal(current):
+            print('visit in A Star :', visits)  # DEBUGGING
             return reconstruct_path(came_from, current)
         for neighbor, cost in neighbours(current):
             tentative_g_score = g_score[current] + cost

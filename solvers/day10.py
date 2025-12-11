@@ -83,7 +83,7 @@ def with_button_pressed(goal: list[int] | tuple[int, ...], button: tuple[int, ..
     return tuple(rv)
 
 
-def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> int:
+def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: list[tuple[int, ...]], visit_limit: int | None = None) -> int:
     if sum(required_joltages) == 0:
         return 0
     start: tuple[int, ...] = tuple(required_joltages)
@@ -95,7 +95,7 @@ def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: 
             if can_press(joltages, button):
                 rv.append((with_button_pressed(joltages, button), 1))
         return rv
-    result: list[tuple[int, ...]] | None = a_star(start, goal, heuristic, neighbours)
+    result: list[tuple[int, ...]] | None = a_star(start, goal, heuristic, neighbours, visit_limit=visit_limit)
     assert (result is not None), 'A Star search returned None'
     return len(cast(list[tuple[int, ...]], result)) - 1
 
@@ -374,33 +374,36 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
     # sys.setrecursionlimit(1_000_000)
 
     part2: int = 0
-    start_at_machine_number: int = 1
+    start_at_machine_number: int = 5
     for i, (required_lights, buttons, required_joltages) in enumerate(machines[start_at_machine_number-1:], start=start_at_machine_number):
-        print(('=' * 20) + f'solving machine {i} of {len(machines)}' + ('=' * 20))
-        # print(' ', required_lights)
-        # print(' ', buttons)
-        # print(' ', required_joltages)
-        # print('  start :', time.strftime('%X %x %Z'))
-        start: float = time.perf_counter()
-        setup_moves, _, _, maximums, _ = setup_step(required_joltages, buttons)
-        current: int = setup_moves
-        # print(f'\nBEFORE DEAD BUTTONS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
-        buttons, maximums = remove_dead_buttons(buttons, maximums)
-        # print(f'\nBEFORE DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
-        required_joltages, buttons = remove_dead_lights(required_joltages, buttons)
-        goal_np: np.ndarray = np.array(required_joltages, dtype=np.uint16)
-        buttons_np: np.ndarray = buttons_to_numpy(buttons, len(required_joltages), dtype=np.uint16)
-        budget_np: np.ndarray = np.array(maximums, dtype=np.uint16)
-        # print(f'\nAFTER DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
-        assert (len(buttons) == len(set(buttons))), 'there are duplicate buttons!'
-        after_pre_process = fewest_presses_for_joltage_by_pruning_bfs(goal_np, buttons_np, buttons, budget_np)
-        after_pre_process = fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
-        current += after_pre_process
-        taken: float = time.perf_counter() - start
-        print(f'took : {taken / 60:.1f} minutes')
-        print(f'answer: {current} ({current - after_pre_process} pre-process + {after_pre_process} search)')
-        print()
-        part2 += current
+        try:
+            print(('=' * 20) + f'solving machine {i} of {len(machines)}' + ('=' * 20))
+            # print(' ', required_lights)
+            # print(' ', buttons)
+            # print(' ', required_joltages)
+            # print('  start :', time.strftime('%X %x %Z'))
+            start: float = time.perf_counter()
+            setup_moves, _, _, maximums, _ = setup_step(required_joltages, buttons)
+            current: int = setup_moves
+            # print(f'\nBEFORE DEAD BUTTONS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
+            buttons, maximums = remove_dead_buttons(buttons, maximums)
+            # print(f'\nBEFORE DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
+            required_joltages, buttons = remove_dead_lights(required_joltages, buttons)
+            goal_np: np.ndarray = np.array(required_joltages, dtype=np.uint16)
+            buttons_np: np.ndarray = buttons_to_numpy(buttons, len(required_joltages), dtype=np.uint16)
+            budget_np: np.ndarray = np.array(maximums, dtype=np.uint16)
+            # print(f'\nAFTER DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
+            assert (len(buttons) == len(set(buttons))), 'there are duplicate buttons!'
+            # after_pre_process = fewest_presses_for_joltage_by_pruning_bfs(goal_np, buttons_np, buttons, budget_np)
+            after_pre_process = fewest_presses_for_joltage_by_a_star(required_joltages, buttons, visit_limit=1_000_000)
+            current += after_pre_process
+            taken: float = time.perf_counter() - start
+            print(f'took : {taken / 60:.1f} minutes')
+            print(f'answer: {current} ({current - after_pre_process} pre-process + {after_pre_process} search)')
+            print()
+            part2 += current
+        except StopIteration:
+            color_print('ABORTED ATTEMPT', color=ASCII_RED)
 
     if 7 == part1:
         assert 33 == part2
