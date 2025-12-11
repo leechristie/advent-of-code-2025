@@ -15,7 +15,7 @@ Not using any coding assistants, or any other generative AI like chatbots. #NoAI
 | ⭐️⭐️ | [Day 7: Laboratories](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day07.py)        | 9:03 a.m. | 10:07 a.m. | 0.21 ms 🟢 |
 | ⭐️⭐️ | [Day 8: Playground](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day08.py)          | 9:22 a.m. |  9:24 a.m. |  270 ms 🟠 |
 | ⭐️⭐️ | [Day 9: Movie Theater](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day09.py)       | 7:06 a.m. |  3:18 p.m. |  260 ms 🟠 |
-| ⭐️⭐️ | [Day 10: Factory](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day10.py)            | 8:08 a.m. |            |            |
+| ⭐️  | [Day 10: Factory](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day10.py)            | 8:08 a.m. |            |            |
 | ⭐️⭐️ | [Day 11: Reactor](https://github.com/leechristie/advent-of-code-2025/blob/main/solvers/day11.py)            | 7:40 a.m. |  8:17 a.m. | 0.44 ms 🟢 |
 | | Day 12                                                                                                      |           |            |            |
 
