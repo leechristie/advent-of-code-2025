@@ -21,4 +21,4 @@ Not using any coding assistants, or any other generative AI like chatbots. #NoAI
 
 My solve times are given in GMT. Puzzles unlock at 5:00 a.m. Subtract 5 hours to get AoC standard timezone.
 
-Runtimes benchmarked on Apple M4 Pro with 24 GB unified memory. Excludes disk access time as input is cached in memory for benchmarking, but do include all input parsing in timing. Runtimes not split between Part 1 and Part 2 because of shared pre-processing steps included in runtime. All rounded to 2 sig. fig.
+Runtimes benchmarked on Apple M4 Pro with 24 GB unified memory. Benchmarking excludes disk access time, as input is cached in memory for benchmarking, but does include all input parsing in timing. Runtimes not split between Part 1 and Part 2 because of shared pre-processing steps included in runtime. All rounded to 2 sig. fig.
