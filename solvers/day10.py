@@ -169,13 +169,10 @@ def debug_print(goal, affecting_button_counts, buttons, minimums, maximums, frie
             print(f'    #{button_id} is dead')
 
 
-def __discount_influence(goal, affecting_button_counts,
+def __discount_influence(affecting_button_counts,
                          button):
     for index in button:
         affecting_button_counts[index] -= 1
-        # assert affecting_button_counts[index] >= 0
-        # if affecting_button_counts[index] == 0:
-        #     assert goal[index] == 0
 
 
 def __disassociate_from_friends(goal, buttons, maximums, friends,
@@ -191,7 +188,7 @@ def __force_move_press_and_delete_button(goal, affecting_button_counts, buttons,
     print(f'  pressing and deleting button #{button_id} {buttons[button_id]} {times} times . . .')
     rv = times
     press_button(goal, button, times)
-    __discount_influence(goal, affecting_button_counts, button)
+    __discount_influence(affecting_button_counts, button)
     __disassociate_from_friends(goal, buttons, maximums, friends, button_id)
     buttons[button_id] = None
     return rv
@@ -199,7 +196,7 @@ def __force_move_press_and_delete_button(goal, affecting_button_counts, buttons,
 
 def __forced_move_just_delete_button(goal, affecting_button_counts, buttons, minimums, maximums, friends, button_id, button) -> None:
     print(f'  deleting button #{button_id} {buttons[button_id]} with no further pressed . . .')
-    __discount_influence(goal, affecting_button_counts, button)
+    __discount_influence(affecting_button_counts, button)
     __disassociate_from_friends(goal, buttons, maximums, friends, button_id)
     buttons[button_id] = None
 
@@ -251,57 +248,6 @@ def setup_step(goal, buttons):
     debug_print(goal, affecting_button_counts, buttons, minimums, maximums, friends)
     rv += apply_forced_moves(goal, affecting_button_counts, buttons, minimums, maximums, friends)
     return rv, affecting_button_counts, minimums, maximums, friends
-
-
-def __has_unsatisfiable_joltage(goal, affecting_button_counts):
-    for g, a in zip(goal, affecting_button_counts):
-        if g > 0 and a == 0:
-            return True
-    return False
-
-
-def __simulate_press(goal, affecting_button_counts, buttons, maximums, friends, button_id):
-    goal = list(goal)
-    affecting_button_counts = list(affecting_button_counts)
-    buttons = list(buttons)
-    maximums = list(maximums)
-    friends = list(friends)
-
-    button = buttons[button_id]
-    assert button is not None
-    press_button(goal, button, 1)
-
-    if maximums[button_id] == 1:
-        maximums[button_id] = 0
-        __discount_influence(goal, affecting_button_counts, button)
-        __disassociate_from_friends(goal, buttons, maximums, friends, button_id)
-        buttons[button_id] = None
-        affecting_button_counts, _, maximums, friends = possible_ranges(goal, buttons)
-    else:
-        maximums[button_id] -= 1
-
-    return tuple(goal), tuple(affecting_button_counts), tuple(buttons), tuple(maximums), tuple(friends)
-
-
-def solve_recursively(goal, affecting_button_counts, buttons, maximums, friends):
-
-    if sum(goal) == 0:
-        return 0
-
-    if __has_unsatisfiable_joltage(goal, affecting_button_counts):
-        return None
-
-    best_presses_remain = None
-    for button_id, button in enumerate(buttons):
-        if button is not None and maximums[button_id] > 0:
-            goal_prime, affecting_button_counts_prime, buttons_prime, maximums_prime, friends_prime = __simulate_press(goal, affecting_button_counts, buttons, maximums, friends, button_id)
-            presses_remain = solve_recursively(goal_prime, affecting_button_counts_prime, buttons_prime, maximums_prime, friends_prime)
-            if presses_remain is not None:
-                if best_presses_remain is None or best_presses_remain > presses_remain:
-                    best_presses_remain = presses_remain
-    if best_presses_remain is None:
-        return None
-    return best_presses_remain + 1
 
 
 def new_solution(goal, buttons) -> int:
