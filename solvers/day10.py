@@ -297,9 +297,7 @@ def fewest_presses_for_joltage_by_pruning(goal: np.ndarray, buttons: np.ndarray,
 
 
     def foo(x: int | None) -> int:
-        rv = x + 1 if x is not None else None
-        print(rv)
-        return rv
+        return x + 1 if x is not None else None
 
 
     total_calls = 0
@@ -330,8 +328,8 @@ def fewest_presses_for_joltage_by_pruning(goal: np.ndarray, buttons: np.ndarray,
         best_after_any_button: int | None = None
         for button, effect in enumerate(buttons):
             if limits[button] > 0:
-                if depth < 10:
-                    print(f'{depth = }, pressing button {button}')
+                # if depth < 5:
+                #     print(f'{depth = }, pressing button {button}')
                 # print(('    ' * indent) + f'pressing {button}')
                 # before = goal.copy(), limits.copy()  # DEBUGGING
                 # print(f'                          {goal} with limits {limits}')
@@ -354,9 +352,7 @@ def fewest_presses_for_joltage_by_pruning(goal: np.ndarray, buttons: np.ndarray,
 
     # print(f'\ngoal =\n{goal}\n\nbuttons =\n{buttons}\n\nlimits =\n{limits}\n')
 
-    minimum_presses()
-
-    return 0  # TODO
+    return minimum_presses()
 
 
 def solve10(lines: Iterator[str]) -> Iterator[int]:
@@ -372,7 +368,7 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
     sys.setrecursionlimit(1_000_000)
 
     part2: int = 0
-    for i, (required_lights, buttons, required_joltages) in enumerate(machines, start=1):
+    for i, (required_lights, buttons, required_joltages) in enumerate(machines[2:], start=3):
         print(('=' * 20) + f'solving machine {i} of {len(machines)}' + ('=' * 20))
         # print(' ', required_lights)
         # print(' ', buttons)
@@ -390,14 +386,17 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         budget_np: np.ndarray = np.array(maximums, dtype=np.uint16)
         # print(f'\nAFTER DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
         assert (len(buttons) == len(set(buttons))), 'there are duplicate buttons!'
-        current += fewest_presses_for_joltage_by_pruning(goal_np, buttons_np, buttons, budget_np)
-        # current += fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
+        # after_pre_process = fewest_presses_for_joltage_by_pruning(goal_np, buttons_np, buttons, budget_np)
+        after_pre_process = fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
+        current += after_pre_process
         taken: float = time.perf_counter() - start
         print(f'took : {taken / 60:.1f} minutes')
-        print(f'answer: {current}')
+        print(f'answer: {current} (of which {after_pre_process} was after pre-process step)')
+        return  # STOP AFTER 1
         print()
         part2 += current
 
-    # if 7 == part1:
-    #     assert 33 == part2
-    # yield part2
+    if 7 == part1:
+        assert 33 == part2
+
+    yield part2
