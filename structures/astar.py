@@ -23,7 +23,7 @@ class BinaryMinHeap[E]:
 
     __slots__ = ['heap', 'lookup']
 
-    def __init__(self):
+    def __init__(self) -> None:
         heap: list[BinaryMinHeapNode[E]] = []
         lookup: dict[E, BinaryMinHeapNode[E]] = {}
         self.heap = heap

@@ -1,6 +1,7 @@
 from functools import partial
 from io import TextIOWrapper
 import time
+from typing import TextIO
 
 from printing.color import color_print, ASCII_YELLOW
 from .days import *
@@ -14,15 +15,15 @@ class SolverError(Exception):
         super().__init__(*args)
 
 
-def get_solver_for(day: int | None=None) -> tuple[int, str, SolverType]:
+def get_solver_for(day: int | None=None) -> tuple[int, str, SolverType, bool]:
     if not SOLVER_LIST:
         raise SolverError('no solvers found')
     if day is None:
         day = max(SOLVER_LIST)
     if day not in SOLVER_LIST:
         raise SolverError(f'no solver for day {day}')
-    title, solver = SOLVER_LIST[day]
-    return day, title, solver
+    title, solver, has_example_b = SOLVER_LIST[day]
+    return day, title, solver, has_example_b
 
 
 def print_header(day: int, title: str, example: bool=False) -> None:
@@ -32,8 +33,13 @@ def print_header(day: int, title: str, example: bool=False) -> None:
         color_print(f'currently using example input file', color=ASCII_YELLOW)
 
 
-def load_input_file(day: int | None=None, example: bool=False) -> TextIOWrapper:
-    filename = f'input/2025/{"example" if example else "input"}{day:02}.txt'
+def load_input_file(day: int | None=None, example: bool=False, example_b: bool=False) -> TextIOWrapper:
+    if not example:
+        assert (not example_b), f'cannot load example b, if not using example'
+    if not example_b:
+        filename = f'input/2025/{"example" if example else "input"}{day:02}.txt'
+    else:
+        filename = f'input/2025/example{day:02}b.txt'
     try:
         return open(filename)
     except FileNotFoundError:
@@ -47,12 +53,19 @@ def solve_all() -> None:
 
 
 def solve(day: int | None=None, example: bool=False) -> None:
-    day, title, solver = get_solver_for(day)
+    day, title, solver, has_example_b = get_solver_for(day)
+    use_example_b: bool = example and has_example_b
     print_header(day, title, example)
     try:
+        example_b_file: TextIO | None = None
+        if use_example_b:
+            example_b_file = load_input_file(day, example, True)
         with load_input_file(day, example) as file:
 
-            active_solver = solver((line.strip('\n') for line in file))
+            if example_b_file is not None:
+                active_solver = solver((line.strip('\n') for line in file), (line.strip('\n') for line in example_b_file))
+            else:
+                active_solver = solver((line.strip('\n') for line in file))
             if not hasattr(active_solver, '__next__'):
                 raise SolverError(f'solver for day {day} did not yield any results')
 
@@ -75,11 +88,17 @@ def solve(day: int | None=None, example: bool=False) -> None:
 
             try:
                 next(active_solver)
+                if example_b_file is not None:
+                    example_b_file.close()
+                    example_b_file = None
                 raise SolverError(f'solver for day {day} yielded too many results')
             except StopIteration:
                 pass
 
     except StopIteration:
+        if example_b_file is not None:
+            example_b_file.close()
+            example_b_file = None
         raise SolverError(f'solver for day {day} yielded too few results')
 
 
@@ -145,9 +164,9 @@ def print_profile_row(day: int, title: str, max_title: int, average_time: float,
 
 
 def profile() -> None:
-    max_title = max(len(title) for title, _ in SOLVER_LIST.values())
+    max_title = max(len(title) for title, _, _ in SOLVER_LIST.values())
     print_profile_header(max_title, 9, 2)
     for day in sorted(SOLVER_LIST.keys()):
-        day, title, solver = get_solver_for(day)
+        day, title, solver, _ = get_solver_for(day)
         average_time, samples = profile_single_pre_loaded(day, solver)
         print_profile_row(day, title, max_title, average_time, samples, 9, 2)
