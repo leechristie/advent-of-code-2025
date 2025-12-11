@@ -47,9 +47,10 @@ def load_input_file(day: int | None=None, example: bool=False, example_b: bool=F
 
 
 def solve_all() -> None:
-    for day in SOLVER_LIST:
-        print()
-        solve(day, example=False)
+    for day, (_, _, _, solved_state) in SOLVER_LIST.items():
+        if solved_state == SolvedState.SOLVED:
+            print()
+            solve(day, example=False)
 
 
 def solve(day: int | None=None, example: bool=False) -> None:

@@ -78,32 +78,32 @@ def iter_four_corners(areas: list[tuple[int, Point, Point]]) -> Iterator[tuple[i
         yield a, (p1, p2), (p3, p4)
 
 
-def iter_four_corners_each_inside(grid: Grid, memo: np.ndarray, areas: list[tuple[int, Point, Point]]) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
+def iter_four_corners_each_inside(grid: np.ndarray, memo: np.ndarray, areas: list[tuple[int, Point, Point]], DOWN_ARROW: int, UP_ARROW: int) -> Iterator[tuple[int, tuple[Point, Point], tuple[Point, Point]]]:
     for a, (p1, p2), (p3, p4) in iter_four_corners(areas):
-        if is_inside_recursive(grid, memo, p3) and is_inside_recursive(grid, memo, p4):
+        if is_inside_recursive(grid, memo, p3.x, p3.y, DOWN_ARROW, UP_ARROW) and is_inside_recursive(grid, memo, p4.x, p4.y, DOWN_ARROW, UP_ARROW):
             yield a, (p1, p2), (p3, p4)
 
 
-def __is_inside_but_not_boundary_recursive(grid: Grid, memo: np.ndarray, point: Point) -> bool:
+def __is_inside_but_not_boundary_recursive(grid: np.ndarray, memo: np.ndarray, x: int, y: int, DOWN_ARROW: int, UP_ARROW: int) -> bool:
 
-    yx: tuple[int, int] = point.y, point.x
+    yx: tuple[int, int] = y, x
     if memo[yx] == 0:
 
         # right is off the grid, so we are outside
-        if point.x + 1 >= grid.dimensions.width:
+        if x + 1 >= grid.shape[1]:
             memo[yx] = 2
             return False
 
-        right: Point = Point(x=point.x + 1, y=point.y)
-        if grid[right] == 'v':
+        right: tuple[int, int] = y, x + 1
+        if grid[right] == DOWN_ARROW:
             memo[yx] = 1
             return True
 
-        if grid[right] == '^':
+        if grid[right] == UP_ARROW:
             memo[yx] = 2
             return False
 
-        if __is_inside_but_not_boundary_recursive(grid, memo, right):
+        if __is_inside_but_not_boundary_recursive(grid, memo, right[1], right[0], DOWN_ARROW, UP_ARROW):
             memo[yx] = 1
             return True
         else:
@@ -114,29 +114,29 @@ def __is_inside_but_not_boundary_recursive(grid: Grid, memo: np.ndarray, point: 
         return memo[yx] == 1
 
 
-def is_inside_recursive(grid: Grid, memo: np.ndarray, point: Point) -> bool:
-    if grid[point] != ' ':
+def is_inside_recursive(grid: np.ndarray, memo: np.ndarray, x: int, y: int, DOWN_ARROW: int, UP_ARROW: int) -> bool:
+    if grid[(y, x)]:
         return True
-    return __is_inside_but_not_boundary_recursive(grid, memo, point)
+    return __is_inside_but_not_boundary_recursive(grid, memo, x, y, DOWN_ARROW, UP_ARROW)
 
 
-def walk_two_points_all_inside(grid: Grid, memo: np.ndarray, p1: Point, p2: Point) -> bool:
+def walk_two_points_all_inside(grid: np.ndarray, memo: np.ndarray, p1: Point, p2: Point, DOWN_ARROW: int, UP_ARROW: int) -> bool:
     if p1.x == p2.x:
         x = p1.x
         for y in range(min((p1.y, p2.y)), max((p1.y, p2.y)) + 1):
-            if not is_inside_recursive(grid, memo, Point(x=x, y=y)):
+            if not is_inside_recursive(grid, memo, x, y, DOWN_ARROW, UP_ARROW):
                 return False
     else:
         y = p1.y
         for x in range(min((p1.x, p2.x)), max((p1.x, p2.x)) + 1):
-            if not is_inside_recursive(grid, memo, Point(x=x, y=y)):
+            if not is_inside_recursive(grid, memo, x, y, DOWN_ARROW, UP_ARROW):
                 return False
     return True
 
 
-def walk_points_all_inside(grid: Grid, memo: np.ndarray, points: list[Point]) -> bool:
+def walk_points_all_inside(grid: np.ndarray, memo: np.ndarray, points: list[Point], DOWN_ARROW: int, UP_ARROW: int) -> bool:
     for p1, p2 in zip(points, [points[-1]] + points[:-1]):
-        if not walk_two_points_all_inside(grid, memo, p1, p2):
+        if not walk_two_points_all_inside(grid, memo, p1, p2, DOWN_ARROW, UP_ARROW):
             return False
     return True
 
@@ -159,10 +159,13 @@ def solve_part2(points: list[Point], areas: list[tuple[int, Point, Point]]) -> t
     dimensions, grid = create_grid(points)
     draw_lines(grid, points)
     draw_vlines(grid, points)
+    DOWN_ARROW: int = grid.symbols.index('v')
+    UP_ARROW: int = grid.symbols.index('^')
+    cells: np.ndarray = grid.cells
 
     memo : np.ndarray = np.zeros([grid.dimensions.height, grid.dimensions.width], dtype=np.uint8)
-    for a, (p1, p2), (p3, p4) in iter_four_corners_each_inside(grid, memo, areas):
-        if walk_points_all_inside(grid, memo, [p1, p3, p2, p4]):
+    for a, (p1, p2), (p3, p4) in iter_four_corners_each_inside(cells, memo, areas, DOWN_ARROW, UP_ARROW):
+        if walk_points_all_inside(cells, memo, [p1, p3, p2, p4], DOWN_ARROW, UP_ARROW):
             return a, p1, p2
     raise AssertionError('did not find solution to Part 2')
 
