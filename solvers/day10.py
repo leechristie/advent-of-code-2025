@@ -1,10 +1,9 @@
 import itertools
 import time
 from collections.abc import Callable
-from typing import Iterator, Any, cast
+from typing import Iterator, cast
 from structures.astar import a_star
 
-from printing.color import ASCII_PURPLE, color_print
 from printing.debug import print
 
 __all__ = ['solve10']
@@ -77,38 +76,6 @@ def with_button_pressed(goal: list[int] | tuple[int, ...], button: tuple[int, ..
     for i in button:
         rv[i] -= 1
     return tuple(rv)
-
-
-NO_SOLUTION: int = -1
-
-
-def fewest_presses_for_joltage_memoized(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> int:
-    memo: dict[tuple[int, ...], int] = {}
-    def __fewest_presses_for_joltage() -> int:
-        t: tuple[int, ...] = tuple(required_joltages)
-        if t in memo:
-            return memo[t]
-        if sum(required_joltages) == 0:
-            memo[t] = 0
-            return 0
-        lowest_remaining: int = NO_SOLUTION
-        for button in buttons:
-            if can_press(required_joltages, button):
-                press_button(required_joltages, button)
-                if sum(required_joltages) == 0:
-                    unpress_button(required_joltages, button)
-                    memo[t] = 1
-                    return 1
-                remaining_presses: int = __fewest_presses_for_joltage()
-                if remaining_presses != NO_SOLUTION:
-                    if lowest_remaining == NO_SOLUTION or remaining_presses < lowest_remaining:
-                        lowest_remaining = remaining_presses
-                unpress_button(required_joltages, button)
-        if lowest_remaining != NO_SOLUTION:
-            lowest_remaining += 1
-        memo[t] = lowest_remaining
-        return lowest_remaining
-    return __fewest_presses_for_joltage()
 
 
 def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> int:
@@ -250,14 +217,21 @@ def setup_step(goal, buttons):
     return rv, affecting_button_counts, minimums, maximums, friends
 
 
-def new_solution(goal, buttons) -> int:
-    rv: int = 0
-    setup_moves, affecting_button_counts, minimums, maximums, friends = setup_step(goal, buttons)
-    rv += setup_moves
-    # recursive_moves = solve_recursively(goal, affecting_button_counts, buttons, maximums, friends)
-    # assert recursive_moves is not None
-    # rv += recursive_moves
-    return rv
+def remove_dead_buttons(buttons, maximums) -> tuple[list[tuple[int, ...]], list[int]]:
+    rv_buttons: list[tuple[int, ...]] = []
+    rv_maximums: list[int] = []
+    for b, m in zip(buttons, maximums):
+        if b is not None:
+            rv_buttons.append(b)
+            rv_maximums.append(m)
+    return rv_buttons, rv_maximums
+
+
+def fewest_presses_for_joltage_by_pruning(goal: list[int], buttons: list[tuple[int, ...]], maximums: list[int]) -> int:
+    print(f'  {goal = }')
+    print(f'  {buttons = }')
+    print(f'  {maximums = }')
+    return 0  # TODO
 
 
 def solve10(lines: Iterator[str]) -> Iterator[int]:
@@ -278,8 +252,10 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         print(' ', required_joltages)
         print('  start :', time.strftime('%X %x %Z'))
         start: float = time.perf_counter()
-        #current: int = fewest_presses_for_joltage_memoized(required_joltages, buttons)
-        current: int = new_solution(required_joltages, buttons)
+        setup_moves, _, _, maximums, _ = setup_step(required_joltages, buttons)
+        current: int = setup_moves
+        buttons, maximums = remove_dead_buttons(buttons, maximums)
+        current += fewest_presses_for_joltage_by_pruning(required_joltages, buttons, maximums)
         current += fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
         taken: float = time.perf_counter() - start
         print(f'  took : {taken / 60:.1f} minutes')
