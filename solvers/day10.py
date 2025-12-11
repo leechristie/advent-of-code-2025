@@ -1,7 +1,7 @@
 import itertools
 import time
 from collections.abc import Callable
-from typing import Iterator, Any
+from typing import Iterator, Any, cast
 from structures.astar import a_star
 
 from printing.color import ASCII_PURPLE, color_print
@@ -84,7 +84,7 @@ NO_SOLUTION: int = -1
 
 def fewest_presses_for_joltage_memoized(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> int:
     memo: dict[tuple[int, ...], int] = {}
-    def __fewest_presses_for_joltage() -> int | None:
+    def __fewest_presses_for_joltage() -> int:
         t: tuple[int, ...] = tuple(required_joltages)
         if t in memo:
             return memo[t]
@@ -122,7 +122,8 @@ def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: 
                 rv.append((with_button_pressed(joltages, button), 1))
         return rv
     result: list[tuple[int, ...]] | None = a_star(start, goal, heuristic, neighbours)
-    return len(result) - 1
+    assert (result is not None), 'A Star search returned None'
+    return len(cast(list[tuple[int, ...]], result)) - 1
 
 
 def possible_ranges(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> tuple[list[int], list[int], list[int], list[set[int]]]:
@@ -141,12 +142,12 @@ def possible_ranges(required_joltages: list[int], buttons: list[tuple[int, ...]]
                 maximums[button_id] = 0
         assert len(supported_button_ids) > 0
         if len(supported_button_ids) == 1:
-            button_id: int = supported_button_ids[0]
+            button_id_to_delete: int = supported_button_ids[0]
             press_count: int = required_joltage
-            assert mimimums[button_id] <= press_count
-            assert maximums[button_id] >= press_count
-            mimimums[button_id] = press_count
-            maximums[button_id] = press_count
+            assert mimimums[button_id_to_delete] <= press_count
+            assert maximums[button_id_to_delete] >= press_count
+            mimimums[button_id_to_delete] = press_count
+            maximums[button_id_to_delete] = press_count
         else:
             max_press_count: int = required_joltage
             for button_id in supported_button_ids:

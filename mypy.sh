@@ -1,3 +1,3 @@
 clear
 echo running mypy . . .
-mypy .
+mypy . --check-untyped-defs
