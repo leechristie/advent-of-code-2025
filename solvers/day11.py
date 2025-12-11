@@ -29,7 +29,7 @@ def parse_devices(lines: Iterator[str], poi: tuple[str, ...]) -> tuple[dict[int,
     return devices, len(strings_to_ints), poi_ints
 
 
-def solve_part1(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, YOU: int, OUT: int) -> int:
+def solve_part1_only(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, YOU: int, OUT: int) -> int:
     memo: list[int] = [-1] * NUM_DEVICES
     def num_paths(start: int) -> int:
         m = memo[start]
@@ -46,12 +46,11 @@ def solve_part1(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, YOU: int, 
     return num_paths(YOU)
 
 
-def solve_part2(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, SVR: int, DAC: int, FFT: int, OUT: int) -> int:
+def solve(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, YOU: int, SVR: int, DAC: int, FFT: int, OUT: int, skip_part1: bool=False) -> tuple[int, int]:
     memo: list[tuple[int, int, int, int] | None] = [None] * NUM_DEVICES
     def num_paths(start: int) -> tuple[int, int, int, int]:
         m: tuple[int, int, int, int] | None = memo[start]
         if memo[start] is not None:
-            m = cast(tuple[int, int, int, int], m)
             return m
         empty: int = 0
         dac: int = 0
@@ -81,19 +80,27 @@ def solve_part2(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, SVR: int, 
         memo[start] = rv
         return rv
 
-    _, _, _, rv = num_paths(SVR)
-    return rv
+    _, _, _, part2 = num_paths(SVR)
+    part1 = sum(num_paths(YOU)) if not skip_part1 else 0
+    return part1, part2
 
 
 def solve11(lines: Iterator[str],
             example_b_lines: Iterator[str] | None = None) -> Iterator[int]:
 
-    devices, num_devices, (you, svr, dac, fft, out) = parse_devices(lines, ('you', 'svr', 'dac', 'fft', 'out'))
-
-    yield solve_part1(devices, num_devices, you, out)
-
-    # puzzle has different Part 2 input for the example :/
     if example_b_lines is not None:
-        devices, num_devices, (you, svr, dac, fft, out) = parse_devices(example_b_lines, ('you', 'svr', 'dac', 'fft', 'out'))
 
-    yield solve_part2(devices, num_devices, svr, dac, fft, out)
+        # example uses two different files!
+        devices, num_devices, (you, out) = parse_devices(lines, ('you', 'out'))
+        part1 = solve_part1_only(devices, num_devices, you, out)
+        yield part1
+        devices, num_devices, (you, svr, dac, fft, out) = parse_devices(example_b_lines, ('you', 'svr', 'dac', 'fft', 'out'))
+        _, part2 = solve(devices, num_devices, you, svr, dac, fft, out, skip_part1=True)
+        yield part2
+
+    else:
+
+        devices, num_devices, (you, svr, dac, fft, out) = parse_devices(lines, ('you', 'svr', 'dac', 'fft', 'out'))
+        part1, part2 = solve(devices, num_devices, you, svr, dac, fft, out)
+        yield part1
+        yield part2
