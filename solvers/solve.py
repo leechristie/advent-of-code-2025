@@ -1,7 +1,7 @@
 from functools import partial
 from io import TextIOWrapper
 import time
-from typing import TextIO
+from typing import TextIO, cast
 
 from printing.color import color_print, ASCII_YELLOW
 from .days import *
@@ -15,15 +15,15 @@ class SolverError(Exception):
         super().__init__(*args)
 
 
-def get_solver_for(day: int | None=None) -> tuple[int, str, SolverType, bool]:
+def get_solver_for(day: int | None=None) -> tuple[int, str, Solver | SolverWithTwoExampleInputs, NumberOfExampleInputs, SolvedState]:
     if not SOLVER_LIST:
         raise SolverError('no solvers found')
     if day is None:
         day = max(SOLVER_LIST)
     if day not in SOLVER_LIST:
         raise SolverError(f'no solver for day {day}')
-    title, solver, has_example_b = SOLVER_LIST[day]
-    return day, title, solver, has_example_b
+    title, solver, has_example_b, is_solved = SOLVER_LIST[day]
+    return day, title, solver, has_example_b, is_solved
 
 
 def print_header(day: int, title: str, example: bool=False) -> None:
@@ -53,8 +53,8 @@ def solve_all() -> None:
 
 
 def solve(day: int | None=None, example: bool=False) -> None:
-    day, title, solver, has_example_b = get_solver_for(day)
-    use_example_b: bool = example and has_example_b
+    day, title, solver, number_of_example_inputs, _ = get_solver_for(day)
+    use_example_b: bool = example and number_of_example_inputs == NumberOfExampleInputs.SEPARATE_EXAMPLES
     print_header(day, title, example)
     try:
         example_b_file: TextIO | None = None
@@ -63,8 +63,10 @@ def solve(day: int | None=None, example: bool=False) -> None:
         with load_input_file(day, example) as file:
 
             if example_b_file is not None:
+                solver = cast(SolverWithTwoExampleInputs, solver)
                 active_solver = solver((line.strip('\n') for line in file), (line.strip('\n') for line in example_b_file))
             else:
+                solver = cast(Solver, solver)
                 active_solver = solver((line.strip('\n') for line in file))
             if not hasattr(active_solver, '__next__'):
                 raise SolverError(f'solver for day {day} did not yield any results')
@@ -122,7 +124,7 @@ def samples_for_single_time(single_time: float) -> int:
     return 300_000_000
 
 
-def profile_single_pre_loaded(day: int, solver: SolverType) -> tuple[float, int]:
+def profile_single_pre_loaded(day: int, solver: Solver) -> tuple[float, int]:
 
     with load_input_file(day, example=False) as file:
         lines = [line.strip('\n') for line in file]
@@ -164,9 +166,12 @@ def print_profile_row(day: int, title: str, max_title: int, average_time: float,
 
 
 def profile() -> None:
-    max_title = max(len(title) for title, _, _ in SOLVER_LIST.values())
+    max_title = max(len(title) for title, _, _, is_solved in SOLVER_LIST.values())
     print_profile_header(max_title, 9, 2)
     for day in sorted(SOLVER_LIST.keys()):
-        day, title, solver, _ = get_solver_for(day)
+        day, title, solver, _, is_solved = get_solver_for(day)
+        if is_solved == SolvedState.UNSOLVED:
+            continue
+        solver = cast(Solver, solver)
         average_time, samples = profile_single_pre_loaded(day, solver)
         print_profile_row(day, title, max_title, average_time, samples, 9, 2)

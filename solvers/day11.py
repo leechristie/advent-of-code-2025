@@ -1,5 +1,4 @@
-from typing import Iterator
-
+from typing import Iterator, cast
 
 __all__ = ['solve11']
 
@@ -50,8 +49,9 @@ def solve_part1(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, YOU: int, 
 def solve_part2(DEVICE: dict[int, tuple[int, ...]], NUM_DEVICES: int, SVR: int, DAC: int, FFT: int, OUT: int) -> int:
     memo: list[tuple[int, int, int, int] | None] = [None] * NUM_DEVICES
     def num_paths(start: int) -> tuple[int, int, int, int]:
-        m = memo[start]
+        m: tuple[int, int, int, int] | None = memo[start]
         if memo[start] is not None:
+            m = cast(tuple[int, int, int, int], m)
             return m
         empty: int = 0
         dac: int = 0
