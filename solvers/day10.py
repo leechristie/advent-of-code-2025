@@ -84,6 +84,8 @@ def with_button_pressed(goal: list[int] | tuple[int, ...], button: tuple[int, ..
 
 
 def fewest_presses_for_joltage_by_a_star(required_joltages: list[int], buttons: list[tuple[int, ...]]) -> int:
+    if sum(required_joltages) == 0:
+        return 0
     start: tuple[int, ...] = tuple(required_joltages)
     goal: Callable[[tuple[int, ...]], bool] = lambda x: sum(x) == 0
     heuristic: Callable[[tuple[int, ...]], int] = max
@@ -273,86 +275,90 @@ def buttons_to_numpy(buttons_list: list[tuple[int, ...]], num_lights: int, dtype
     return rv
 
 
+def fewest_presses_for_joltage_by_pruning_bfs(goal: np.ndarray, buttons: np.ndarray, buttons_py: list[tuple[int, ]], limits: np.ndarray) -> int:
 
-def fewest_presses_for_joltage_by_pruning(goal: np.ndarray, buttons: np.ndarray, buttons_py: list[tuple[int, ]], limits: np.ndarray) -> int:
-
-    def press(goal: np.ndarray, effect: np.ndarray, limits: np.ndarray, limit_diff: np.ndarray) -> None:
-        np.subtract(goal, effect, goal)
-        for button_index, effect_py in enumerate(buttons_py):
-            new_limit = -1
-            # assert len(effect_py) > 0
-            for light_index in effect_py:
-                current: int = goal[light_index]
-                if new_limit == -1 or current < new_limit:
-                    new_limit = current
-            # assert new_limit > -1
-            # print()
-            # assert new_limit <= limits[button_index]
-            limit_diff[button_index] = limits[button_index] - new_limit
-            limits[button_index] = new_limit
-
-    def unpress(goal: np.ndarray, effect: np.ndarray, limits: np.ndarray, limit_diff: np.ndarray) -> None:
-        np.add(goal, effect, goal)
-        np.add(limits, limit_diff, limits)
+    pass
 
 
-    def foo(x: int | None) -> int:
-        return x + 1 if x is not None else None
-
-
-    total_calls = 0
-    max_depth = 0
-    memo = {}
-    def minimum_presses(depth=0) -> int | None:
-        nonlocal total_calls
-        nonlocal max_depth
-        if depth > max_depth:
-            print(f'reached depth {depth} with {goal = }, {limits = }')
-            max_depth = depth
-        total_calls += 1
-        if total_calls % 100000 == 0:
-            print(f'reached {total_calls} total calls currently at depth {depth} (max was {max_depth})')
-        g = tuple(goal)
-        l = tuple(limits)
-        gl = g, l
-        if gl in memo:
-            return memo[gl]
-        if not goal.any():
-            memo[gl] = 0
-            return 0
-        if not limits.any():
-            memo[gl] = None
-            return None
-        # print(('    ' * indent) + f'minimum_presses called with {goal = } and {limits = }')
-        limit_diff: np.ndarray = np.zeros_like(limits, dtype=np.uint16)
-        best_after_any_button: int | None = None
-        for button, effect in enumerate(buttons):
-            if limits[button] > 0:
-                # if depth < 5:
-                #     print(f'{depth = }, pressing button {button}')
-                # print(('    ' * indent) + f'pressing {button}')
-                # before = goal.copy(), limits.copy()  # DEBUGGING
-                # print(f'                          {goal} with limits {limits}')
-                press(goal, effect, limits, limit_diff)
-                # print(f'pressed button {button}   to get {goal} with limits {limits}')
-                best_after_this_button: int | None = minimum_presses(depth+1)
-                if best_after_this_button is not None:
-                    if best_after_any_button is None or best_after_this_button < best_after_any_button:
-                        best_after_any_button = best_after_this_button
-                unpress(goal, effect, limits, limit_diff)
-                # print(f'unpressed button {button} to get {goal} with limits {limits}')
-                # print()
-                # assert (before[0] == goal.copy()).all()  # DEBUGGING
-                # assert (before[1] == limits.copy()).all()  # DEBUGGING
-            # else:
-                # print(('    ' * indent) + f'skipping button {button}, because limits are {limits}')
-        memo[gl] = foo(best_after_any_button)
-        return memo[gl]
-
-
-    # print(f'\ngoal =\n{goal}\n\nbuttons =\n{buttons}\n\nlimits =\n{limits}\n')
-
-    return minimum_presses()
+# def fewest_presses_for_joltage_by_pruning_dfs(goal: np.ndarray, buttons: np.ndarray, buttons_py: list[tuple[int, ]], limits: np.ndarray) -> int:
+#
+#     def press(goal: np.ndarray, effect: np.ndarray, limits: np.ndarray, limit_diff: np.ndarray) -> None:
+#         np.subtract(goal, effect, goal)
+#         for button_index, effect_py in enumerate(buttons_py):
+#             new_limit = -1
+#             # assert len(effect_py) > 0
+#             for light_index in effect_py:
+#                 current: int = goal[light_index]
+#                 if new_limit == -1 or current < new_limit:
+#                     new_limit = current
+#             # assert new_limit > -1
+#             # print()
+#             # assert new_limit <= limits[button_index]
+#             limit_diff[button_index] = limits[button_index] - new_limit
+#             limits[button_index] = new_limit
+#
+#     def unpress(goal: np.ndarray, effect: np.ndarray, limits: np.ndarray, limit_diff: np.ndarray) -> None:
+#         np.add(goal, effect, goal)
+#         np.add(limits, limit_diff, limits)
+#
+#
+#     def foo(x: int | None) -> int:
+#         return x + 1 if x is not None else None
+#
+#
+#     total_calls = 0
+#     max_depth = 0
+#     memo = {}
+#     def minimum_presses(depth=0) -> int | None:
+#         nonlocal total_calls
+#         nonlocal max_depth
+#         if depth > max_depth:
+#             print(f'reached depth {depth} with {goal = }, {limits = }')
+#             max_depth = depth
+#         total_calls += 1
+#         if total_calls % 100000 == 0:
+#             print(f'reached {total_calls} total calls currently at depth {depth} (max was {max_depth})')
+#         g = tuple(goal)
+#         l = tuple(limits)
+#         gl = g, l
+#         if gl in memo:
+#             return memo[gl]
+#         if not goal.any():
+#             memo[gl] = 0
+#             return 0
+#         if not limits.any():
+#             memo[gl] = None
+#             return None
+#         # print(('    ' * indent) + f'minimum_presses called with {goal = } and {limits = }')
+#         limit_diff: np.ndarray = np.zeros_like(limits, dtype=np.uint16)
+#         best_after_any_button: int | None = None
+#         for button, effect in enumerate(buttons):
+#             if limits[button] > 0:
+#                 # if depth < 5:
+#                 #     print(f'{depth = }, pressing button {button}')
+#                 # print(('    ' * indent) + f'pressing {button}')
+#                 # before = goal.copy(), limits.copy()  # DEBUGGING
+#                 # print(f'                          {goal} with limits {limits}')
+#                 press(goal, effect, limits, limit_diff)
+#                 # print(f'pressed button {button}   to get {goal} with limits {limits}')
+#                 best_after_this_button: int | None = minimum_presses(depth+1)
+#                 if best_after_this_button is not None:
+#                     if best_after_any_button is None or best_after_this_button < best_after_any_button:
+#                         best_after_any_button = best_after_this_button
+#                 unpress(goal, effect, limits, limit_diff)
+#                 # print(f'unpressed button {button} to get {goal} with limits {limits}')
+#                 # print()
+#                 # assert (before[0] == goal.copy()).all()  # DEBUGGING
+#                 # assert (before[1] == limits.copy()).all()  # DEBUGGING
+#             # else:
+#                 # print(('    ' * indent) + f'skipping button {button}, because limits are {limits}')
+#         memo[gl] = foo(best_after_any_button)
+#         return memo[gl]
+#
+#
+#     # print(f'\ngoal =\n{goal}\n\nbuttons =\n{buttons}\n\nlimits =\n{limits}\n')
+#
+#     return minimum_presses()
 
 
 def solve10(lines: Iterator[str]) -> Iterator[int]:
@@ -365,10 +371,11 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
     assert (part1 in (7, 494)), f'part1 = {part1}'
     yield part1
 
-    sys.setrecursionlimit(1_000_000)
+    # sys.setrecursionlimit(1_000_000)
 
     part2: int = 0
-    for i, (required_lights, buttons, required_joltages) in enumerate(machines[2:], start=3):
+    start_at_machine_number: int = 1
+    for i, (required_lights, buttons, required_joltages) in enumerate(machines[start_at_machine_number-1:], start=start_at_machine_number):
         print(('=' * 20) + f'solving machine {i} of {len(machines)}' + ('=' * 20))
         # print(' ', required_lights)
         # print(' ', buttons)
@@ -386,13 +393,12 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
         budget_np: np.ndarray = np.array(maximums, dtype=np.uint16)
         # print(f'\nAFTER DEAD LIGHTS\nrequired_joltages = {required_joltages}\nbuttons (py) = {buttons}')
         assert (len(buttons) == len(set(buttons))), 'there are duplicate buttons!'
-        # after_pre_process = fewest_presses_for_joltage_by_pruning(goal_np, buttons_np, buttons, budget_np)
+        after_pre_process = fewest_presses_for_joltage_by_pruning_bfs(goal_np, buttons_np, buttons, budget_np)
         after_pre_process = fewest_presses_for_joltage_by_a_star(required_joltages, buttons)
         current += after_pre_process
         taken: float = time.perf_counter() - start
         print(f'took : {taken / 60:.1f} minutes')
-        print(f'answer: {current} (of which {after_pre_process} was after pre-process step)')
-        return  # STOP AFTER 1
+        print(f'answer: {current} ({current - after_pre_process} pre-process + {after_pre_process} search)')
         print()
         part2 += current
 
