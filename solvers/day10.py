@@ -374,7 +374,7 @@ def solve10(lines: Iterator[str]) -> Iterator[int]:
     # sys.setrecursionlimit(1_000_000)
 
     part2: int = 0
-    start_at_machine_number: int = 5
+    start_at_machine_number: int = 1
     for i, (required_lights, buttons, required_joltages) in enumerate(machines[start_at_machine_number-1:], start=start_at_machine_number):
         try:
             print(('=' * 20) + f'solving machine {i} of {len(machines)}' + ('=' * 20))
