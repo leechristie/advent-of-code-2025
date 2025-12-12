@@ -12,6 +12,7 @@ from .day08 import *
 from .day09 import *
 from .day10 import *
 from .day11 import *
+from .day12 import *
 
 __all__ = ['SOLVER_LIST', 'Solver', 'SolverWithTwoExampleInputs', 'NumberOfExampleInputs', 'SolvedState']
 
@@ -53,5 +54,6 @@ SOLVER_LIST: dict[int, tuple[str, Solver | SolverWithTwoExampleInputs, NumberOfE
     8:  ('Playground',          solve08, SINGLE,            SOLVED),
     9:  ('Movie Theater',       solve09, SINGLE,            SOLVED),
     10: ('Factory',             solve10, SINGLE,            UNSOLVED),
-    11: ('Reactor',             solve11, SEPARATE_EXAMPLES, SOLVED)
+    11: ('Reactor',             solve11, SEPARATE_EXAMPLES, SOLVED),
+    12: ('Christmas Tree Farm', solve12, SINGLE,            UNSOLVED)
 }
